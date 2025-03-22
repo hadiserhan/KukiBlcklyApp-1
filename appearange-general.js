@@ -62,3 +62,8 @@ function OpenBLEForm()
   else
     connectToBle();  
 }
+
+
+function sendPostMessage(){
+  window.postMessage("OpenBluetooth", "*");
+}
