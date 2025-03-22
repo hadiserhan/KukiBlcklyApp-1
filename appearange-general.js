@@ -65,5 +65,6 @@ function OpenBLEForm()
 
 
 function sendPostMessage(){
+  console.log("OpenBluetooth");
   window.postMessage("OpenBluetooth", "*");
 }
