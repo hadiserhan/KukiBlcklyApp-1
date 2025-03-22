@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 36 36"
+   version="1.1"
+   sodipodi:docname="zoom-out.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview6195"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="8.1415489"
+     inkscape:cx="-11.054408"
+     inkscape:cy="4.5445898"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs6178">
+    <style
+       id="style6176">.cls-1{fill:#231f20;opacity:0.15;}.cls-2{fill:#fff;}.cls-3{opacity:0.75;}.cls-4{fill:none;stroke:#575e75;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5px;}</style>
+  </defs>
+  <title
+     id="title6180">zoom-out</title>
+  <circle
+     class="cls-1"
+     cx="18"
+     cy="18"
+     r="18"
+     id="circle6182"
+     style="fill:#ff7f2a;opacity:0.3" />
+  <circle
+     class="cls-2"
+     cx="18"
+     cy="18"
+     r="16"
+     id="circle6184" />
+  <g
+     class="cls-3"
+     id="g6192"
+     style="stroke:#dd5e75;stroke-opacity:1">
+    <circle
+       class="cls-4"
+       cx="18"
+       cy="18"
+       r="7"
+       id="circle6186"
+       style="stroke:#dd5e75;stroke-opacity:1" />
+    <line
+       class="cls-4"
+       x1="23"
+       y1="23"
+       x2="26"
+       y2="26"
+       id="line6188"
+       style="stroke:#dd5e75;stroke-opacity:1" />
+    <line
+       class="cls-4"
+       x1="16"
+       y1="18"
+       x2="20"
+       y2="18"
+       id="line6190"
+       style="stroke:#dd5e75;stroke-opacity:1" />
+  </g>
+</svg>
