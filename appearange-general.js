@@ -65,6 +65,8 @@ function OpenBLEForm()
 
 
 function sendPostMessage(){
-  console.log("OpenBluetooth");
-  window.postMessage("OpenBluetooth", "*");
+  console.log("OpenBluetooth console");
+  AppInventor.setWebViewString("OpenBluetooth");
+  // ThunkableWebviewerExtension.postMessage("OpenBluetooth");
+  
 }
