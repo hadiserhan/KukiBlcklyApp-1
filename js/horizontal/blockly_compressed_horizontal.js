@@ -29511,10 +29511,12 @@ Blockly.Block.prototype.getInputWithConnection = function (a) {
 };
 Blockly.Block.prototype.getSurroundParent = function () {
   var a = this;
+  var c;
   do {
     var b = a;
     a = a.getParent();
-    if (!a) return null;
+    if (!a) return c || null;
+    c = a;
   } while (a.getNextBlock() == b);
   return a;
 };
@@ -34743,6 +34745,12 @@ Blockly.Generator.prototype.workspaceToCode = function (a) {
   
   var finalCode = [];
   var event_message_blue_blocks = [];
+  var event_message_green_blocks = [];
+  var event_message_red_blocks = [];
+  var event_message_purple_blocks = [];
+  var event_message_pink_blocks = [];
+  var event_message_orange_blocks = [];
+  
   this.init(a);
   var topBlocks  = a.getTopBlocks(!0);
   a = "     ".split(" ");
@@ -34771,76 +34779,89 @@ Blockly.Generator.prototype.workspaceToCode = function (a) {
           this.scrubNakedValue &&
           (type = this.scrubNakedValue(type));
         event_message_blue_blocks = type.split("-");
-        // h[0] = block[0];
-        // h[1] = block.slice(1, 7).join("\n");
-        // h[2] = block.slice(5, 7).join("\n");
-        // type = parseInt(block[7].split(" ")[2]) - 1;
-        // console.log(type);
-        // var u = block.slice(7, 9).join("\n\t");
-        // console.log(u);
-        // block = block.slice(9, block.length).join("\n\t\t");
-        // "" == block && (block = "pass\n");
-        console.log(event_message_blue_blocks);
-        // f[n] = u + "\n\t\t" + block;
-        // console.log(f[type]);
+      }
+    }
+    else if (type.includes("event_message_green")) {
+      if (
+        ((g = !0), (type = this.blockToCode(block)), goog.isArray(type) && (type = type[0]), type)
+      ) {
+        block.outputConnection &&
+          this.scrubNakedValue &&
+          (type = this.scrubNakedValue(type));
+          event_message_green_blocks = type.split("-");
+      }
+    }
+    else if (type.includes("event_message_red")) {
+      if (
+        ((g = !0), (type = this.blockToCode(block)), goog.isArray(type) && (type = type[0]), type)
+      ) {
+        block.outputConnection &&
+          this.scrubNakedValue &&
+          (type = this.scrubNakedValue(type));
+          event_message_red_blocks = type.split("-");
+      }
+    }
+    else if (type.includes("event_message_purple")) {
+      if (
+        ((g = !0), (type = this.blockToCode(block)), goog.isArray(type) && (type = type[0]), type)
+      ) {
+        block.outputConnection &&
+          this.scrubNakedValue &&
+          (type = this.scrubNakedValue(type));
+          event_message_purple_blocks = type.split("-");
+      }
+    }
+    else if (type.includes("event_message_pink")) {
+      if (
+        ((g = !0), (type = this.blockToCode(block)), goog.isArray(type) && (type = type[0]), type)
+      ) {
+        block.outputConnection &&
+          this.scrubNakedValue &&
+          (type = this.scrubNakedValue(type));
+          event_message_pink_blocks = type.split("-");
+      }
+    }
+    else if (type.includes("event_message_orange")) {
+      if (
+        ((g = !0), (type = this.blockToCode(block)), goog.isArray(type) && (type = type[0]), type)
+      ) {
+        block.outputConnection &&
+          this.scrubNakedValue &&
+          (type = this.scrubNakedValue(type));
+          event_message_orange_blocks = type.split("-");
       }
     }
   }
   topBlocks= topBlocks[t];
   t = this.blockToCode(topBlocks);
-  // goog.isArray(t) && (t = t[0]);
-  // if (t) {
-  //   topBlocks.outputConnection && this.scrubNakedValue && (t = this.scrubNakedValue(t));
-  //   t = t.split("\n");
-  //   var w = t.slice(1, 3).join("\n");
-  //   t = t[0] + "\n" + t.slice(3, t.length).join("\n");
-  // }
-  // if (1 == g) {
-  //   g = "";
-  //   for (r = 0; r < f.length; r++) (topBlocks = f[r]), "" != topBlocks && (g = g + "\n\t" + c);
-  //   type = h[1] + g + "\n" + h[2] + "\n\t" + h[0] + "\n" + h[0];
-  //   b.push(type);
-  // }
-  // if (1 == d) {
-  //   g = "";
-  //   for (d = 0; d < a.length; d++) (topBlocks = a[d]), "" != topBlocks && (g = g + "\n\t" + c);
-  //   type = e[1] + g + "\n" + e[2] + "\n\t" + e[0] + "\n" + e[0];
-  //   b.push(type);
-  // }
-  // 1 == q &&
-  //   ((type = m[1] + "\n" + k + "\n" + m[4] + "\t" + m[0] + "\n" + m[0]),
-  //   b.push(type));
-  // 2 == q &&
-  //   ((type =
-  //     m[1] + "\n" + m[2] + "\t" + l + "\n" + m[4] + "\t" + m[0] + "\n" + m[0]),
-  //   b.push(type));
-  // 3 == q &&
-  //   ((k = k.replaceAll("\n", "\n\t")),
-  //   (type =
-  //     m[1] +
-  //     "\n" +
-  //     m[2] +
-  //     "\t" +
-  //     l +
-  //     "\n" +
-  //     m[3] +
-  //     "\n\t\t" +
-  //     k +
-  //     "\n" +
-  //     m[4] +
-  //     "\t" +
-  //     m[0] +
-  //     "\n" +
-  //     m[0]),
-  //   finalCode.push(type));
-  // a = t.split("\n");
-  // 0 != finalCode.length && 2 >= a.length && (t += w);
-  // finalCode.push(t);
-  // finalCode = finalCode.join("\n");
-  // finalCode= this.finish(finalCode);
-  // finalCode = finalCode.replace(/^\s+\n/, "");
-  // finalCode = finalCode.replace(/\n\s+$/, "\n");
-  // return (finalCode = finalCode.replace(/[ \t]+\n/g, "\n"));
+  const maxLoops = 10;
+  let loopCount = 0;
+  
+  const hasPlaceholder = (str) => {
+    return str.includes("XBB") || str.includes("XGG") || str.includes("XRR") ||
+           str.includes("XVV") || str.includes("XPP") || str.includes("XOO");
+  };
+  
+  while (hasPlaceholder(t) && loopCount < maxLoops) {
+    t = t.replaceAll("XBB", event_message_blue_blocks.length > 0 ? event_message_blue_blocks.join('-') : "");
+    t = t.replaceAll("XGG", event_message_green_blocks.length > 0 ? event_message_green_blocks.join('-') : "");
+    t = t.replaceAll("XRR", event_message_red_blocks.length > 0 ? event_message_red_blocks.join('-') : "");
+    t = t.replaceAll("XVV", event_message_purple_blocks.length > 0 ? event_message_purple_blocks.join('-') : "");
+    t = t.replaceAll("XPP", event_message_pink_blocks.length > 0 ? event_message_pink_blocks.join('-') : "");
+    t = t.replaceAll("XOO", event_message_orange_blocks.length > 0 ? event_message_orange_blocks.join('-') : "");
+    
+    loopCount++;
+  }
+  
+  if (loopCount === maxLoops) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Infinite Loop Detected',
+      text: 'Your event blocks may be referencing each other in a loop. Please check for circular references like blue → red → blue.',
+      confirmButtonText: 'OK'
+    });
+  }
+
   return(t);
   // a ||
   //   (console.warn("No workspace specified in workspaceToCode call.  Guessing."),

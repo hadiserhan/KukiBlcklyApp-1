@@ -488,7 +488,7 @@ Blockly.Blocks.control_send_message = {
           colourTertiary: Blockly.Colours.operators.tertiary
       })
   },
-  loopTypes: new Set(),
+  // loopTypes: new Set(),
   has_message:false,
   parent_type:"",
   onchange: function(b) {
@@ -521,6 +521,7 @@ Blockly.Blocks.control_send_message = {
   },
   getSurroundLoop: function () {
       let block = this.getSurroundParent();
+      if(!block) return;
       if(block.type.includes("event_message")){
         this.has_message = true;
         this.parent_type = block.type;
