@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 80 80"
+   version="1.1"
+   id="svg35"
+   sodipodi:docname="control_send_message_5.svg"
+   inkscape:version="0.92.1 r15371">
+  <metadata
+     id="metadata39">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="716"
+     inkscape:window-height="480"
+     id="namedview37"
+     showgrid="false"
+     inkscape:zoom="2.95"
+     inkscape:cx="40"
+     inkscape:cy="40"
+     inkscape:window-x="25"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Work_area_squares" />
+  <defs
+     id="defs4">
+    <style
+       id="style2">.cls-1,.cls-5{fill:#ffab19;}.cls-2,.cls-6{fill:none;}.cls-2,.cls-5{stroke:#cf8b17;stroke-width:1.76px;}.cls-2,.cls-5,.cls-6{stroke-linecap:round;stroke-linejoin:round;}.cls-3{opacity:0.1;}.cls-4{fill:#231f20;}.cls-6{stroke:#fff;stroke-width:2.64px;}</style>
+  </defs>
+  <title
+     id="title6">control_send_message_5</title>
+  <g
+     id="Layer_2"
+     data-name="Layer 2">
+    <g
+       id="Work_area_squares"
+       data-name="Work area squares">
+      <rect
+         class="cls-1"
+         width="80"
+         height="80"
+         id="rect8"
+         style="fill:#ffab19;fill-opacity:0.01657459" />
+    </g>
+    <g
+       id="Kuki_Icons"
+       data-name="Kuki Icons">
+      <path
+         class="cls-1"
+         d="M68,58.68H24.66a3.08,3.08,0,0,1-3.08-3.08v0l.18-30.45a3.08,3.08,0,0,1,3.08-3.06H68a3.08,3.08,0,0,1,3.08,3.08V55.6A3.08,3.08,0,0,1,68,58.68Z"
+         id="path11" />
+      <polyline
+         class="cls-2"
+         points="23.31 57.13 46.43 37.91 69.54 57.13"
+         id="polyline13" />
+      <g
+         class="cls-3"
+         id="g17">
+        <path
+           class="cls-4"
+           d="M71.72,27.51,50.83,49.21a6.14,6.14,0,0,1-8.68.2l-.2-.2L21.12,27.49a.86.86,0,0,1-.21-1,.9.9,0,0,1,.84-.46H71a.9.9,0,0,1,.81.53A.93.93,0,0,1,71.72,27.51Z"
+           id="path15" />
+      </g>
+      <path
+         class="cls-5"
+         d="M71.09,25.15,49.87,43.38a5.28,5.28,0,0,1-6.88,0L21.78,25.13"
+         id="path19" />
+      <line
+         class="cls-6"
+         x1="17.39"
+         y1="26.08"
+         x2="13.05"
+         y2="26.08"
+         id="line21" />
+      <line
+         class="cls-6"
+         x1="17.39"
+         y1="40.22"
+         x2="13.05"
+         y2="40.22"
+         id="line23" />
+      <line
+         class="cls-6"
+         x1="17.39"
+         y1="54.24"
+         x2="13.05"
+         y2="54.24"
+         id="line25" />
+      <line
+         class="cls-6"
+         x1="17.39"
+         y1="47.2"
+         x2="6.83"
+         y2="47.2"
+         id="line27" />
+      <line
+         class="cls-6"
+         x1="17.39"
+         y1="33.12"
+         x2="6.83"
+         y2="33.12"
+         id="line29" />
+      <path
+         class="cls-2"
+         d="M68,58.68H24.66a3.08,3.08,0,0,1-3.08-3.08v0l.18-30.45a3.08,3.08,0,0,1,3.08-3.06H68a3.08,3.08,0,0,1,3.08,3.08V55.6A3.08,3.08,0,0,1,68,58.68Z"
+         id="path31" />
+    </g>
+  </g>
+</svg>

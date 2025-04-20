@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<!-- Mirrored from www.edblocksapp.com/v3/ by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 17 Jan 2025 13:09:27 GMT -->
+<!-- Added by HTTrack -->
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+
+<head>
+
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <title>EdBlocks V3 | Block based programming for the Kuki V3 robot</title>
+   <meta name="description"
+      content="EdBlocks V3 is a graphical block based programming language that makes programming fun and easy for the Kuki V3 robot.">
+
+   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+   <link href="vendor/bootstrap/css/bootstrap_theme.css" rel="stylesheet">
+   <link href="css/Bootstrap_Icons/bootstrap-icons.min.css" rel="stylesheet">
+   <link href="vendor/open-iconic/font/css/open-iconic-bootstrap.css" rel="stylesheet">
+   <link href="vendor/fontawesome/css/fontawesome.css" rel="stylesheet" />
+   <link href="vendor/fontawesome/css/brands.css" rel="stylesheet" />
+
+   <link href="css/edblocks.css" rel="stylesheet">
+   <link href="css/editor.css" rel="stylesheet">
+
+   <script src="closure/goog/base.js"></script>
+   <script src="blockly_compressed_horizontal.js"></script>
+   <script src="msg/messages.js"></script>
+
+   <script src="vendor/jquery/jquery.min.js"></script>
+   <script src="vendor/jquery/jquery-ui.min.js"></script>
+   <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+   <script src="js/jquery.loadingdotdotdot.js"></script>
+   <!-- <script src="js/js.cookie.js"></script> -->
+
+   <script src="blocks_compressed.js"></script>
+   <script src="blocks_compressed_horizontal.js"></script>
+   <script src="KukiLive_compressed.js"></script>
+   <script src="WorkspaceSetupJs.js"></script>
+
+   <script src="appearange-general.js"></script>
+   <script src="appearange-horizontal.js"></script>
+   <script src="bluetooth.js"></script>
+   <script src="kukiuploader.js"></script>
+   <script>
+
+      const apiBaseURL = 'https://api.Kukirobotics.net/';
+      const updateBaseURL = 'https://api.Kukirobotics.net/firmware/';
+
+      const updateFirmwareVersion = 'v1.3.2';
+      const updateBootloaderVersion = 'v1.2.0';
+
+      const strCompiler = 'mpy-cross-v1.3.1-x64'; // Leave empty for API default
+
+      // var pgwBrowser, pgwBrowserGroup, pgwBrowser, pgwOSGroup, deviceType;
+      let navFlash, navUSB, navPopFirmwareUpdate, divFirmwareCheck, spanProgrammingMethodLabel;
+
+      // document.addEventListener('gesturestart', function (e) {
+      //    e.preventDefault();
+      // });
+
+      // document.addEventListener('touchmove', function (e) {
+      //    e.preventDefault();
+      // });   
+
+
+   </script>
+
+</head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LRM0RG05YN"></script>
+<script>
+   window.dataLayer = window.dataLayer || [];
+   function gtag() { dataLayer.push(arguments); }
+   gtag('js', new Date());
+   gtag('config', 'G-LRM0RG05YN');
+</script>
+
+<body onload="PageLoad();" class="horizontal-mode">
+
+   <div id="appHolder" class="container-fluid" style="padding-left: 0; padding-right: 0;">
+      <div class="container-fluid mba-header" id="appHeader" style="display:none">
+         <div class="row">
+            <div class="col mba-menu-main">
+               <ul class="nav nav-pills">
+                  <li class="nav-item dropdown">
+                     <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+                        aria-expanded="false"><span class="oi oi-menu"></span> Menu</a>
+                     <div class="dropdown-menu">
+                        <a id="navNew" class="dropdown-item" href="#">New</a>
+                        <div class="dropdown-divider"></div>
+                        <a id="navPopLoadDemo" class="dropdown-item" href="#">Load demo</a>
+                        <a id="navPopLoadLocal" class="dropdown-item" href="#">Load from device</a>
+                        <div class="dropdown-divider"></div>
+                        <a id="navPopLoadSave" class="dropdown-item" href="#">Save to device</a>
+                        <div class="dropdown-divider"></div>
+                        <a id="navPopFirmwareUpdate" id="navUpdateFirmware" class="dropdown-item" href="#">Update
+                           firmware</a>
+                        <a id="navPopHelp" class="dropdown-item" href="#">Diagnostics</a>
+                        <div class="dropdown-divider"></div>
+                        <a id="navPopAbout" class="dropdown-item" href="#">About</a>
+                        <a class="dropdown-item" href="https://meetKuki.com/terms-of-use/" target="_blank">Terms of
+                           use <span class="oi oi-share-boxed"></span></a>
+                     </div>
+                  </li>
+                  <li class="nav-item">
+                     <a id="navPopLoadSaveAlt" class="nav-link" href="#"><span class="oi oi-pencil"></span> Save</a>
+                  </li>
+
+
+                  <li class="nav-item dropdown">
+                     <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+                        aria-expanded="false"><span class="oi oi-cog"></span> Kuki V3</a>
+                     <div class="dropdown-menu">
+                        <a class="dropdown-item" href="https://www.edblocksapp.com/v2/">Switch to Kuki V1/V2</a>
+                        <a class="dropdown-item" href="https://www.edblocksapp.com/">Which version do I have?</a>
+                     </div>
+                  </li>
+
+               </ul>
+            </div>
+            <div class="col mba-menu-title-holder">
+               <ul class="nav nav-pills">
+                  <li class="nav-item">
+                     <span class="mba-program-title nav-link">Untitled Program</span>
+                  </li>
+               </ul>
+            </div>
+            <div class="col mba-menu-program">
+               <ul class="nav nav-pills">
+                  <li class="nav-item">
+                     <a class="nav-link" href="https://meetKuki.com/robot-programming-software/edblocks/"
+                        target="_blank" title="EdBlocks lesson plans">
+                        meetKuki.com
+                     </a>
+                  </li>
+                  <li class="nav-item">
+                     <a id="navProgramFlash" class="nav-link" href="#">
+                        <span class="oi oi-sun"></span> Program
+                     </a>
+                  </li>
+                  <li class="nav-item">
+                     <a id="navProgram" class="nav-link" href="#">
+
+
+                        <i class="fa-brands fa-usb"></i> Program
+
+                        <!-- <span class="oi oi-data-transfer"></span> Program -->
+
+                        <!-- <span class="oi oi-data-transfer"></span> Program -->
+
+                     </a>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <div class="row" style="background-color:#549ef7;">
+         <div class="col-sm-2 col-md-2">
+            <a class="logoicons" href="https://hprobots.com/code"></a>
+         </div>
+         <div class="col-sm-10 col-md-10">
+            <nav class="navbar navbar-expand-lg navbar-light">
+               <div class="dropdown">
+                  <button class="btn" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown">
+                     <i class="fa fa-language" style="color: #ffffff;"></i>
+                  </button>
+               </div>
+               <button id="newButton" class="btn info" onclick="NewProject()" title="New project"><i
+                     class="fa fa-file"></i></button>
+               <button id="openButton" class="btn file" onclick="loadProject()" title="Open project"><i
+                     class="fa fa-folder-open"></i></button>
+               <form style="margin-bottom: 1rem; font-size: 12pt;"><input id="projectName" type="text"></form>
+               <button id="saveButton" class="btn" onclick="SaveProjectConfirm()" title="Save project as"><i
+                     class="fa fa-floppy-disk"></i></button>
+               <div style="width: 1rem;"></div>
+               <div>
+                  <label class="switch">
+                     <input type="checkbox" class="input" onclick="OnToogleConnection()">
+                     <span class="slider"></span>
+                  </label>
+               </div>
+               <div style="width: 1rem;"></div>
+               <button id="btConnect" class="btn my-btn-connected rounded-circle" onclick="OpenConnectionForm()"
+                  title="Connect via USB cable">
+                  <i class="button-icon-lg bi-usb-symbol" aria-hidden="true"></i>
+               </button>
+               <button id="btConnectBLE" class="btn my-btn-connected rounded-circle notConnectedButton" onclick="sendPostMessage()"
+                  title="Successfully connected via Bluetooth">
+                  <i class="button-icon-lg bi-bluetooth"></i>
+               </button>
+               <button id="runButton" class="btn my-btn-play rounded-circle play-button" onclick="RunCode()" title="Run code"><i
+                     class="button-icon-lg bi-play-fill"></i></button>
+
+               <button id="stopButton" class="btn stop" onclick="StopCode()" title="Stop code"><i
+                     class="fa fa-stop"></i></button>
+               <button class="btn" id="btDocuments" onclick="ShowDocumentsPanel()">
+                  <i class="fa fa-graduation-cap" style="color: #ffffff;"></i>
+               </button>
+               <div class="dropdown">
+                  <a class="nav-link" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+                     aria-expanded="false" style="color: white">
+                     <button class="btn" title="Settings" id="settingsButton">
+                        <i class="fa fa-gear" style="color: #ffffff;"></i>
+                     </button>
+
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                     <a class="dropdown-item"
+                        href="https://hprobots.com/otto-code/webcode/pythonuploader/pythonuploader.html"
+                        id="btMicropython" onclick="GotoMicropython()">📥 Update Firmware v1.2</a>
+                     <a class="dropdown-item" href="#" id="btOttoLibrary" onclick="UploadLibraries()">📚 Update
+                        Libraries v2.0</a>
+                     <a class="dropdown-item" href="#" id="btBLEcode" onclick="UploadBLEFirmware()">📶 Save Bluetooth
+                        code</a>
+                     <a class="dropdown-item" href="#" id="btFilesOtto" onclick="ShowOttoFiles()">🗃️ Check files in
+                        Otto</a>
+                     <hr>
+                     <a class="dropdown-item" a="" href="../webcode.html" id="btwebsimulate">👨‍💻 word blocks</a>
+                     <a class="dropdown-item" href="../websimulate.html" id="btwebsimulate">💻 simulate</a>
+                     <a class="dropdown-item" href="../../webcontrol/" id="btwebcontrol">🎮 control</a>
+                     <a class="dropdown-item" href="../game/panel.html" id="btwebgame">🕹️ BETA game</a>
+                     <hr>
+                     <a class="dropdown-item" href="#" id="btintro" onclick="StartIntro()">🙋‍♂️ intro tour</a>
+                     <a class="dropdown-item"
+                        href="https://hprobots.com/otto-robot/code/#flipbook-hp-robots-otto-starter-coding-intro/1/"
+                        target="blank">📖 code guide</a>
+                     <a class="dropdown-item" href="../../community/blocks/" target="blank">👨‍👩‍👦 help forum</a>
+                  </ul>
+               </div>
+            </nav>
+         </div>
+      </div>
+      <div class="row">
+         <div class="col-md-12" id="appContent">
+            <div class="blocks horizontal-blocks">
+               <div id="blocklyDiv"></div>
+            </div>
+            <div style="display:none" class="scratchFooter__------packages-flipper-web-src-containers-scratch-footer-scratch-footer-module"
+               data-testid="scratch-footer">
+               <div class="spacing__------packages-flipper-web-src-containers-scratch-footer-scratch-footer-module">
+               </div>
+               <div class="canvas-controls">
+                  <div class="canvas-controls__controls">
+                     <div
+                        class="canvas-footer-button-container__------packages-flipper-web-src-components-canvas-footer-button-style-module canvas-footer-button-container--shadow__------packages-flipper-web-src-components-canvas-footer-button-style-module grey__------packages-flipper-web-src-components-canvas-footer-button-style-module">
+                        <button
+                           class="canvas-footer-button__------packages-flipper-web-src-components-canvas-footer-button-style-module"
+                           id="canvas-stop-button" aria-label="Stop program" disabled="" data-testid="stop-button"
+                           data-highlight-id="Guided Press Stop"><svg width="23" height="23"
+                              class="lls-dsm-icon lls-dsm-icon__uncategorizedGenericStopIcon">
+                              <use href="media/icons/uncategorized/GenericStopIcon.svg#dsmIcon"
+                                 xlink:href="media/icons/uncategorized/GenericStopIcon.svg#dsmIcon"></use>
+                           </svg></button>
+                     </div>
+                     <div
+                        class="canvas-footer-button-container__------packages-flipper-web-src-components-canvas-footer-button-style-module canvas-footer-button-container--shadow__------packages-flipper-web-src-components-canvas-footer-button-style-module yellow__------packages-flipper-web-src-components-canvas-footer-button-style-module">
+                        <button
+                           class="canvas-footer-button__------packages-flipper-web-src-components-canvas-footer-button-style-module"
+                           id="canvas-play-button" data-testid="play-button" aria-label="Play program"
+                           data-highlight-id="Guided Press Play"><svg width="31" height="31"
+                              class="lls-dsm-icon lls-dsm-icon__uncategorizedGenericPlayIcon"
+                              style="transform: rotate(0deg);">
+                              <use href="media/icons/uncategorized/GenericPlayIcon.svg#dsmIcon"
+                                 xlink:href="media/icons/uncategorized/GenericPlayIcon.svg#dsmIcon"></use>
+                           </svg></button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <!-- <div class="canvas-sensors-bar">
+               <div class="base__------packages-flipper-web-src-components-scratch-hub-scratch-hub-module"><button
+                     data-testid="scratch-hub__button" aria-labelledby="scratch-hub-button-label"><svg width="42"
+                        height="46" class="lls-dsm-icon lls-dsm-icon__48GeckoSmallHubBold">
+                        <use href="/icons/48/GeckoSmallHubBold.svg#dsmIcon"
+                           xlink:href="/icons/48/GeckoSmallHubBold.svg#dsmIcon"></use>
+                     </svg></button></div><label id="scratch-hub-button-label"
+                  class="label__------packages-flipper-web-src-components-scratch-hub-scratch-hub-module"><span
+                     class="base__------packages-flipper-web-src-components-resize-text-resize-text-module"
+                     style="font-size: 12px; white-space: normal;">connect</span></label>
+            </div> -->
+            <div class="container-fluid mba-footer">
+               <div class="row">
+                  <textarea id="importExport" style="width: 26%; height: 12em" onchange="taChange();"
+                     onkeyup="taChange()"></textarea>
+                  <textarea id="USBbox" style="width: 26%; height: 12em" onchange="taChange();"
+                     onkeyup="taChange()"></textarea>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Save to computer -->
+      <div class="modal draggable fade" id="modalSaveLocal" tabindex="-1" role="dialog"
+         aria-labelledby="modalSaveLocalLabel" aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal-m" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Save to device</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <div class="form-group">
+                     <label for="txtProgramName">Program name</label>
+                     <input type="text" class="form-control" id="txtProgramName" autocomplete="off" maxlength="255">
+                     <div id="divProgramNameMessageLocal" class="alert" role="alert" style="display: none;"></div>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button id="btnSaveLocal" type="button" class="btn btn-primary">Save to device</button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+      <!-- Load from computer -->
+      <div class="modal draggable fade" id="modalLoadLocal" tabindex="-1" role="dialog"
+         aria-labelledby="modalLoadLocalLabel" aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal-m" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Load from device</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+
+
+                  <!-- <div class="container-fluid"> -->
+                  <div class="row">
+                     <div class="col-7 load-instructions">
+                        Please select an EdBlocks save file.<br><span style="font-size: 85%;">All EdBlocks save files
+                           are file type <strong>.edblocks</strong></span>.
+                     </div>
+                     <div class="col-5 load-file-element">
+                        <input type="file" id="modalLoadLocalFiles" name="files[]" accept=".edblocks" />
+                        <label for="modalLoadLocalFiles" />Select a file to upload...</label>
+                     </div>
+                  </div>
+                  <!-- </div> -->
+
+                  <div class="container-fluid load-file-feedback">
+                     <div class="row">
+                        <div class="col">
+                           <div id="modalLoadLocalWarning"></div>
+                           <!-- <div id="modalLoadLocalDetails"></div> -->
+                        </div>
+                     </div>
+                  </div>
+
+
+               </div>
+               <div class="modal-footer">
+                  <button id="btnLoadLocal" type="button" class="btn btn-primary" disabled>Load program</button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+
+      <!-- Load demo -->
+      <div class="modal draggable fade" id="modalLoadDemo" tabindex="-1" role="dialog"
+         aria-labelledby="modalLoadDemoLabel" aria-hidden="true">
+
+         <!-- <div class="modal-dialog" role="document"> -->
+
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Load demo</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <div id="demo-program-list"></div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+
+      <!-- Update firmware -->
+      <div class="modal draggable fade" id="modalFirmwareUpdate" tabindex="-1" role="dialog"
+         aria-labelledby="modalFirmwareUpdateLabel" aria-hidden="true" data-backdrop="static">
+         <div class="modal-dialog modal-dialog-centered modal" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Update firmware</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <p><strong>The latest Kuki V3 firmware version is: <span id="fuLatestFirmware">...</span></strong>
+                  </p>
+                  <p>Use this pop-up to update the firmware in your Kuki.</p>
+                  <p><strong>To update Kuki V3 firmware:</strong></p>
+                  <p>Plug in your Kuki and click the 'Update firmware' button below then follow the prompts.</p>
+                  <div id="fuButtonsHolder" class=" d-flex w-100" role="group">
+                     <button id="btnFUHubConnect" type="button" class="btn btn-primary" disabled>Update firmware <span
+                           class="oi oi-chevron-right"></span></span></button>
+                     <button id="btnFUHubReconnect" type="button" class="btn btn-primary" disabled
+                        style="display:none;">Reconnect Kuki <span class="oi oi-chevron-right"></span></button>
+                  </div>
+                  <div id="fuStatusHolder" class="card">
+                     <div class="card-body">
+                        <div style="display:none;">Status: <span id="fuStatusConnectionStatus" class="notConnected">not
+                              connected</span></div>
+                        <div style="display:none;" id="ZEBRA-hubStatusFirmwareVersionHolder">Firmware Version: <span
+                              id="fuStatusFirmwareVersion">...</span></div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+      <!-- About [ EB V3 ] -->
+      <div class="modal draggable fade" id="modalAbout" tabindex="-1" role="dialog" aria-labelledby="modalAboutLabel"
+         aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">About EdBlocks</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <p><strong>Copyright 2024 Microbric Pty Ltd</strong></p>
+
+                  <p>The EdBlocks app has been developed using the Scratch Blocks code base developed by MIT. Scratch
+                     Blocks is built on the Blockly code base developed by Google.</p>
+                  <p>
+                     Contributions and credits:<br>
+                     EdBlocks programming language and block compiler developed by Ben Hayton, Microbric<br>
+                     EdBlocks user interface developed by Sean Killian, Killian Web Development<br>
+                     Kuki V3 firmware developed by Damien George, George Robotics (MicroPython code base)<br>
+                     <!-- Kuki V1/V2 firmware developed by Bill Hammond, Circuitworks<br>
+            Kuki V1/V2 token assembler developed by Brian Danilko, Likeable Software<br> -->
+                     Icon graphics by Stephen Holmes
+                  </p>
+
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+      <!-- Help -->
+      <div class="modal draggable fade" id="modalHelp" tabindex="-1" role="dialog" aria-labelledby="modalAboutLabel"
+         aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Diagnostics</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+
+                  <strong>Connectivity issues</strong>
+
+                  <p>To ensure that your program can be compiled and sent to the Kuki robot, it is a good idea to
+                     check your connection with the EdBlocks compiler.</p>
+                  <p><button type="button" id="navPopHelpConnection" class="btn btn-primary btn-sm">Run the connection
+                        checker</button></p>
+
+                  <!-- <p>&nbsp;</p>
+
+         <strong>Firmware</strong>
+         <p>The firmware version in your Kuki can be useful to know when talking to our tech support team. Check that here:</p>
+         <p><button type="button" id="navPopHelpGetStatus" class="btn btn-primary btn-sm">Get firmware version</button></p> -->
+
+                  <div id="divFirmwareCheck">
+                     <p>&nbsp;</p>
+                     <strong>Firmware</strong>
+                     <p>The firmware version in your Kuki can be useful to know when talking to our tech support team.
+                        Check that here:</p>
+                     <p><button type="button" id="navPopHelpGetStatus" class="btn btn-primary btn-sm">Get firmware
+                           version</button></p>
+                  </div>
+
+
+                  <div id="divProgrammingMethod">
+                     <p>&nbsp;</p>
+                     <strong>Programming method</strong>
+                     <p>This option enables you to swtich between USB and screen flash programming on this device.</p>
+                     <p><button type="button" id="navPopProgrammingMethod" class="btn btn-primary btn-sm">Change
+                           programming method</button></p>
+                  </div>
+
+
+                  <div id="divClearRemoteCodes">
+                     <p>&nbsp;</p>
+                     <strong>Clear learned IR remote commands</strong>
+                     <p>This option allows you to clear all learned IR remote control commands from an Kuki V3 robot.
+                     </p>
+                     <p>
+                        <button type="button" id="doClearRemoteCodes" class="btn btn-primary btn-sm">Clear remote
+                           codes</button>
+                        <span id="divClearRemoteCodesOutput" style="display:none;"></span>
+                     </p>
+                  </div>
+
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Programming Method -->
+      <div class="modal draggable fade" id="modalProgrammingMethod" tabindex="-1" role="dialog"
+         aria-labelledby="modalProgrammingMethodLabel" aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Programming method</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+
+                  <p>Screen flash programming has been developed for Apple iPads. This is because Apple do not allow
+                     normal access to the iPad's data port. Therefore, screen flash programming is only fully supported
+                     for iPads. However, the screen flasher does work with some Android devices. The option below
+                     enables screen flash programming on this device. If this device is not an iPad then it is not
+                     guaranteed to work.</p>
+
+                  <div class="container">
+                     <div class="row">
+                        <div class="col-md-6" style="padding-left:0; padding-right:0;">
+                           <div id="programmingMethodHolder" class="card">
+                              <div class="card-body">
+                                 <span id="programmingMethodLabel"></span>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-6" style="padding: 10px 15px;">
+                           <span id="btnChangeUSBMethod" class="btn btn-primary btn-xs">Set to USB method</span>
+                           <span id="btnChangeFlashMethod" class="btn btn-primary btn-xs">Set to FLASH method</span>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- <div class="container">
+                  <div class="row">
+                     <div class="col-md-12">
+                        
+                     </div>
+                  </div>
+               </div> -->
+
+                  <div id="accordion">
+                     <div class="card">
+                        <div class="card-header" id="headingOne">
+                           <h5 class="mb-0">
+                              <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne"
+                                 aria-expanded="true" aria-controls="collapseOne">
+                                 Why is screen flashing not guaranteed to work with Android devices?
+                              </button>
+                           </h5>
+                        </div>
+                        <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                           <div class="card-body">
+                              Android devices are made by many different manufacturers and there are thousands of
+                              different models. This means there is also a lot of different screen technologies. It is
+                              not possible to test and customise screen flashing for all Android devices.
+                           </div>
+                        </div>
+                     </div>
+                     <div class="card">
+                        <div class="card-header" id="headingTwo">
+                           <h5 class="mb-0">
+                              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                                 aria-expanded="false" aria-controls="collapseTwo">
+                                 Are there settings that might help my Android device work with screen flashing?
+                              </button>
+                           </h5>
+                        </div>
+                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                           <div class="card-body">
+                              Yes, on the screen flash popup window there is a 'reliable/fast' setting that has four
+                              positions. Try each one of the four positions. Also, try adjusting the screen brightness.
+                              Test with 50%, 75%, 90% and 100% brightness.
+                           </div>
+                        </div>
+                     </div>
+                     <div class="card">
+                        <div class="card-header" id="headingThree">
+                           <h5 class="mb-0">
+                              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree"
+                                 aria-expanded="false" aria-controls="collapseThree">
+                                 What do I do if screen flashing does not work on my Android device?
+                              </button>
+                           </h5>
+                        </div>
+                        <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                           data-parent="#accordion">
+                           <div class="card-body">
+                              To program you will need to plug the Kuki V3 cable into the Android device's data port
+                              via an adaptor cable. These are common and cheaply available from ebay, Amazon etc.
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <p>&nbsp;</p>
+
+
+                  <div class="help-footer">
+                     <a title="Back" href="#" id="lnkPopHelp">
+                        <span class="icon ebicon-chevron-left"></span>Back to diagnostics
+                     </a>
+                  </div>
+
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+      <!-- Connection -->
+      <div class="modal draggable fade" id="modalConnection" tabindex="-1" role="dialog"
+         aria-labelledby="modalConnectionLabel" aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Connection</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <div id="apiStatusHolder" class="card">
+                     <div class="card-body">
+                        <span id="apiStatusRefresh" style="float: right;">
+                           <button type="button" class="btn btn-outline-secondary btn-sm"><span
+                                 class="oi oi-reload"></span></button>
+                        </span>
+                        <span id="apiStatusOutput"></span>
+                     </div>
+                  </div>
+
+                  <p><strong>If the test above has the result "<span style="font-family: monospace;">NO SERVER
+                           FOUND</span>" then a firewall may be blocking access to the compiler.</strong></p>
+                  <p>To rectify this, ask your network administrator to whitelist these addresses:</p>
+                  <ul>
+                     <li>api.Kukirobotics.net</li>
+                     <li>wavs.Kukirobotics.net</li>
+                  </ul>
+
+                  <!-- <p><strong>If the test above is showing "<span style="font-family: monospace;">NO SERVER FOUND</span>" then you may be behind a firewall blocking access to the compiler.</strong></p>
+            <p>You need the network administrator to white list these addresses:</p>
+            <ul>
+               <li>https://www.edblocksapp.com</li>
+               <li>https://api.Kukirobotics.net</li>               
+               <li>13.210.175.93</li>
+               <li>52.8.213.196</li>						
+               <li>52.52.166.106</li>
+               <li>52.79.71.19</li>
+            </ul>
+            <p>The network administrator also needs to unblock ports 80, 8080, 443 and 8443.</p> -->
+                  <div class="help-footer">
+                     <a title="Back" href="#" id="lnkPopHelp">
+                        <span class="icon ebicon-chevron-left"></span>Back to diagnostics
+                     </a>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+      <!-- Status -->
+      <div class="modal draggable fade" id="modalStatus" tabindex="-1" role="dialog" aria-labelledby="modalStatusLabel"
+         aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Firmware version</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <button id="btnStatusHubConnect" type="button" class="btn btn-primary">Connect Kuki</button>
+                  <div id="hubStatusHolder" class="card">
+                     <div class="card-body">
+
+                        <div id="hubStatusConnectionHolder">
+                           <span><strong>Status:</strong></span>
+                           <span id="hubStatusConnectionStatus" class="notConnected">not connected</span>
+                        </div>
+
+                        <div id="hubStatusFirmwareVersionHolder">
+                           <div><strong>Firmware version:</strong></div>
+                           <div id="hubStatusFirmwareVersion">...</div>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="help-footer">
+                     <a title="Back" href="#" id="lnkPopHelp">
+                        <span class="icon ebicon-chevron-left"></span>Back to diagnostics
+                     </a>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+      <!-- Programming -->
+      <div class="modal fade draggable" id="modalProgramming" tabindex="-1" role="dialog"
+         aria-labelledby="modalProgrammingLabel" aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered modal" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Program</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <div id="programStatusHolder" class="card">
+                     <div class="card-body">
+                        <div id="divProgrammingMessage"></div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+
+      <!-- Programming -->
+      <!-- <div class="modal fade draggable" id="modalProgramming" tabindex="-1" role="dialog" aria-labelledby="modalProgrammingLabel" aria-hidden="true">
+   <div class="modal-dialog modal-dialog-centered modal" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" >Program</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <div id="programStatusHolder" class="card">
+               <div class="card-body">
+                  <div id="divProgrammingMessage"></div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div> -->
+
+
+      <!-- Browser Check -->
+      <div class="modal draggable fade" id="modalBrowserCheck" tabindex="-1" role="dialog"
+         aria-labelledby="modalBrowserCheckLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+         <div class="modal-dialog modal-dialog-centered modal" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Unsupported browser</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+
+                  <!-- <p>You appear to be using: <strong><span class="exBrowserDetected"></span></strong></p>
+            <p>The [ EB V3 ] hub is programmed directly from your web browser via USB. This requires that your web browser supports USB connections. Unfortunately, <span class="exBrowserDetected"></span> does not currently support USB connections, so cannot program your [ EB V3 ] hub.</p>
+            <p>We recommend using Google Chrome.</p>
+            <p><a href="https://www.google.com.au/chrome/" target="_blank" >Get Chrome</a></p> -->
+
+
+                  <p>You appear to be using: <strong><span class="exBrowserDetected"></span></strong></p>
+                  <p>The Kuki V3 is programmed directly from your web browser via USB. This requires that your web
+                     browser supports USB connections.</p>
+                  <p>Unfortunately, <span class="exBrowserDetected"></span> does not currently support USB connections,
+                     so cannot program your Kuki V3 robot.</p>
+                  <p>We recommend using Google Chrome.</p>
+                  <p><a href="https://www.google.com.au/chrome/" target="_blank">Get Chrome</a></p>
+
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+      <!-- Browser Check Program -->
+      <!-- <div class="modal draggable fade" id="modalBrowserCheckProgram" tabindex="-1" role="dialog" aria-labelledby="modalBrowserCheckProgramLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+   <div class="modal-dialog modal-dialog-centered modal" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" >Unsupported browser - FOR DELETION</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            
+            <p>You appear to be using: <strong><span class="exBrowserDetected"></span></strong></p>
+            <p>The Kuki V3 is programmed directly from your web browser via USB. This requires that your web browser supports USB connections.</p>
+            <p>Unfortunately, <span class="exBrowserDetected"></span> does not currently support USB connections, so cannot program your Kuki V3 robot.</p>
+            <p>We recommend using Google Chrome.</p>
+            <p><a href="https://www.google.com.au/chrome/" target="_blank" >Get Chrome</a></p>            
+
+         </div>
+      </div>
+   </div>
+</div> -->
+
+
+      <!-- Loading -->
+      <div class="modal fade" id="modalLoading" tabindex="-1" role="dialog" aria-labelledby="modalLoading"
+         aria-hidden="true" data-keyboard="false" data-backdrop="static">
+         <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+            <div class="modal-content">
+               <div class="modal-body" style="text-align: center;">
+                  Loading workspace...
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+
+      <!-- Flasher -->
+      <div class="modal draggable fade" id="modalFlasher" tabindex="-1" role="dialog" aria-labelledby="modalLoading"
+         aria-hidden="true" data-keyboard="false">
+         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Flasher</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+
+
+                  <div class="container">
+                     <div class="row">
+
+                        <div class="col-md-4" style="padding-right: 0; padding-left: 0;">
+
+                           <ol style="margin-bottom: 1em;">
+                              <li>Place Kuki over image</li>
+                              <li>Press Kuki's round button once</li>
+                              <li>Press 'Download program'</li>
+                           </ol>
+
+                           <!-- 
+                        <select name="selFlasherSpeed" id="selFlasherSpeed">
+                           <option value="1">Reliable</option>
+                           <option value="2">Reliable 2</option>
+                           <option value="3">Reliable 3</option>
+                           <option value="4">Reliable 4</option>
+                        </select> 
+                     -->
+
+                           <div id="labelFlasherSpeed">
+                              <span class="reliable">Reliable</span>
+                              <span class="fast">Fast</span>
+                           </div>
+
+                           <input type="range" id="rngFlasherSpeed" min="1" max="4" step="1" value="4">
+                           <div id="divFlasherSpeedDesc">If the download does not work or is not fast enough, try
+                              adjusting the speed above. The lowest speed is usually the most reliable.</div>
+
+                           <!-- <input type="checkbox" id="colour-option" checked style="display: none;" > -->
+                           <input type="checkbox" id="colour-option" style="display: none;">
+
+                           <div id="flashProgressBarHolder">
+                              <div id="flashProgressBar"></div>
+                              <div id="output"></div>
+                           </div>
+
+                           <div class="clearfix">
+                              <button id="btnFlasherRun" type="button" class="btn btn-primary">Download program</button>
+                              <button id="btnFlasherStop" type="button" class="btn btn-primary">Cancel</button>
+                           </div>
+
+                           <div id="flashTips">
+                              <p><strong>Tips</strong><br>
+                                 Adjust screen brightness between 80% to 90%.<br>
+                                 Move away from direct and in-direct sunlight or bright lights.<br>
+                                 Ensure you have updated Kuki V3 to the latest firmware.</p>
+                           </div>
+
+                        </div>
+                        <div class="col-md-8">
+
+                           <div id="flasherHolder">
+                              <div id="flasherCanvasHolder">
+                                 <canvas id="canvas"></canvas>
+                              </div>
+                              <div id="flasherImageHolder">
+                                 <img src="images/Kuki_mask.png">
+                              </div>
+                           </div>
+
+                        </div>
+                     </div>
+                  </div>
+
+               </div>
+
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <xml id="toolbox" style="display: none">
+      <category name="" id="events" colour="#FFD500" secondaryColour="#DBC200">
+         <!-- <block type="new_event_start" maxInstances="1"></block> -->
+         <block type="control_stop"> </block>
+         <block type="event_wait_time">
+            <value name="DURATION">
+               <shadow type="math_positive_number">
+                  <field name="NUM">1</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="event_button_pressed"></block>
+      </category>
+      <category name="" id="looks" colour="#9966FF" secondaryColour="#855CD6">
+         <block type="kuki_sound_on"></block>
+         <block type="kuki_light">
+            <value name="CHOICE">
+               <shadow type="dropdown_kuki_light">
+                  <field name="CHOICE">0</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_RGB_light_OFF"></block>
+         <block type="kuki_RGB_light_random"></block>
+         <block type="kuki_RGB_light">
+            <value name="VALUE">
+               <shadow type="colour_picker">
+                  <field name="COLOUR">#00e052</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_matrix">
+            <value name="MATRIX">
+               <shadow type="matrix_picker">
+                  <field name="MATRIX"></field>
+               </shadow>
+            </value>
+         </block> 
+      </category>
+      <category name="" id="motion" colour="#4C97FF" secondaryColour="#4280D7">
+         <block type="kuki_drive_forward">
+            <value name="STEPS">
+               <shadow type="math_positive_number">
+                  <field name="NUM">1</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_drive_backward">
+            <value name="STEPS">
+               <shadow type="math_positive_number">
+                  <field name="NUM">1</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_turn_left">
+            <value name="DURATION">
+               <shadow type="math_angle_CC">
+                  <field name="NUM">90</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_turn_right">
+            <value name="DURATION">
+               <shadow type="math_angle_CC">
+                  <field name="NUM">90</field>
+               </shadow>
+            </value>
+         </block>
+      </category>
+      <category name="" id="pen" colour="#0fBD8C" secondaryColour="#0DA57A">
+         <block type="kuki_pen">
+            <value name="CHOICE">
+               <shadow type="dropdown_kuki_pen">
+                  <field name="CHOICE">0</field>
+               </shadow>
+            </value>
+         </block> 
+      </category>
+      <category name="" id="loop" colour="#FFAB19" secondaryColour="#EC9C13">
+         <block type="control_loop_number">
+            <value name="TIMES">
+               <shadow type="math_whole_number">
+                  <field name="NUM">3</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="control_forever"></block>
+      </category>
+      <category name="" id="messages" colour="#FFD500" secondaryColour="#DBC200">
+         <block type="control_send_message" >
+            <value name="CHOICE">
+              <shadow type="dropdown_control_set_message">
+                  <field name="CHOICE">1</field>
+              </shadow>
+            </value>
+         </block>
+         <block type="event_message_blue"></block>
+         <block type="event_message_green"></block>
+         <block type="event_message_red"></block>
+         <block type="event_message_pink"></block>
+         <block type="event_message_purple"></block>
+         <block type="event_message_orange"></block>
+      </category>
+ 
+   </xml>
+
+   <script src="js/demos.js"></script>
+   <script src="js/flasher.js"></script>
+   <script src="js/firmwareUpdateLogic.js"></script>
+   <script src="js/edblocks.js"></script>
+
+</body>
+</html>

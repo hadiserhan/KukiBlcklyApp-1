@@ -443,30 +443,43 @@ Blockly.Msg.TOOLTIP_LIGHT_SOUND_REST_WHOLE = "Play a whole rest"
 Blockly.Msg.TOOLTIP_LIGHT_SOUND_REST_HALF = "Play a half rest"
 Blockly.Msg.TOOLTIP_LIGHT_SOUND_REST_QUARTER = "Play a quarter rest"
 Blockly.Msg.TOOLTIP_LIGHT_SOUND_REST_EIGHTH = "Play a eighth rest"
-Blockly.Msg.TOOLTIP_CONTROL_SEND_MESSAGE_1 = "Send blue message"
-Blockly.Msg.TOOLTIP_CONTROL_SEND_MESSAGE_2 = "Send pink message"
-Blockly.Msg.TOOLTIP_CONTROL_SEND_MESSAGE_3 = "Send green message"
-Blockly.Msg.TOOLTIP_CONTROL_SEND_MESSAGE_4 = "Send violet message"
-Blockly.Msg.TOOLTIP_CONTROL_SEND_MESSAGE_5 = "Send orange message"
-Blockly.Msg.TOOLTIP_CONTROL_SEND_MESSAGE_6 = "Send indigo message"
+
 
 /// tool tips for the wait until options
-Blockly.Msg.event_wait_time = "Wait for "
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_CLAP = "Wait until 1 clap is detected"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_KEY_CIRCLE = "Wait until the round button is pushed"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_KEY_TRIANGLE = "Wait until the triangle button is pushed"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_CLAP_TWO = "Wait until 2 claps are detected"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_LINE_ON_BLACK = "Wait until a black surface is detected"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_LINE_ON_WHITE = "Wait until a white surface is detected"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_LEFT_LIGHT = "Wait until a light is on the left side"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_RIGHT_LIGHT = "Wait until a light is on the right side"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_OBSTACLE = "Wait until an obstacle is detected"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_1 = "Wait until the blue message is received"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_2 = "Wait until the pink message is received"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_3 = "Wait until the green message is received"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_4 = "Wait until the violet message is received"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_5 = "Wait until the orange message is received"
-Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_6 = "Wait until the indigo message is received"
+Blockly.Msg.KUKI_TOOLTIP_WAIT_FOR = "Wait for "
+Blockly.Msg.KUKI_TOOLTIP_SECONDS = " Second(s) "
+Blockly.Msg.KUKI_TOOLTIP_WAIT_UNTIL_BUTTON_PRESSED = " Wait until the button is pressed";
+Blockly.Msg.KUKI_TOOLTIP_TURN_LED_ON = " Turn LED ON";
+Blockly.Msg.KUKI_TOOLTIP_TURN_LED_OFF = " Turn LED OFF";
+Blockly.Msg.KUKI_TOOLTIP_TOGGLE_LED = " Toggle LED ON/OFF";
+Blockly.Msg.KUKI_TOOLTIP_CONTROL_SEND_MESSAGE_GREEN = "Send green message"
+Blockly.Msg.KUKI_TOOLTIP_CONTROL_SEND_MESSAGE_RED = "Send red message"
+Blockly.Msg.KUKI_TOOLTIP_CONTROL_SEND_MESSAGE_ORANGE = "Send orange message"
+Blockly.Msg.KUKI_TOOLTIP_CONTROL_SEND_MESSAGE_PINK = "Send pink message"
+Blockly.Msg.KUKI_TOOLTIP_CONTROL_SEND_MESSAGE_PURPLE = "Send purple message"
+Blockly.Msg.KUKI_TOOLTIP_CONTROL_SEND_MESSAGE_BLUE = "Send blue message"
+Blockly.Msg.KUKI_TOOLTIP_NEW_EVENT_MESSAGE_GREEN = "Start when the green message is received"
+Blockly.Msg.KUKI_TOOLTIP_NEW_EVENT_MESSAGE_RED = "Start when the red message is received"
+Blockly.Msg.KUKI_TOOLTIP_NEW_EVENT_MESSAGE_ORANGE = "Start when the orange message is received"
+Blockly.Msg.KUKI_TOOLTIP_NEW_EVENT_MESSAGE_PINK = "Start when the pink message is received"
+Blockly.Msg.KUKI_TOOLTIP_NEW_EVENT_MESSAGE_PURPLE = "Start when the purple message is received"
+Blockly.Msg.KUKI_TOOLTIP_NEW_EVENT_MESSAGE_BLUE = "Start when the blue message is received"
+
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_CLAP = "Wait until 1 clap is detected"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_KEY_CIRCLE = "Wait until the round button is pushed"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_KEY_TRIANGLE = "Wait until the triangle button is pushed"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_CLAP_TWO = "Wait until 2 claps are detected"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_LINE_ON_BLACK = "Wait until a black surface is detected"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_LINE_ON_WHITE = "Wait until a white surface is detected"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_LEFT_LIGHT = "Wait until a light is on the left side"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_RIGHT_LIGHT = "Wait until a light is on the right side"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_EVENT_OBSTACLE = "Wait until an obstacle is detected"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_1 = "Wait until the blue message is received"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_2 = "Wait until the pink message is received"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_3 = "Wait until the green message is received"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_4 = "Wait until the violet message is received"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_5 = "Wait until the orange message is received"
+// Blockly.Msg.TOOLTIP_CONTROL_WAIT_MESSAGE_6 = "Wait until the indigo message is received"
 
 ///tool tips for the control options
 Blockly.Msg.TOOLTIP_CONTROL_LOOP_FOREVER = "Loop forever"
@@ -487,12 +500,7 @@ Blockly.Msg.TOOLTIP_NEW_EVENT_KEY_TRIANGLE = "Start when the triangle button is 
 Blockly.Msg.TOOLTIP_NEW_EVENT_KEY_CIRCLE = "Start when the round button is pushed"
 Blockly.Msg.TOOLTIP_NEW_EVENT_LINE_ON_WHITE = "Start when a white surface is detected"
 Blockly.Msg.TOOLTIP_NEW_EVENT_LINE_ON_BLACK = "Start when a black surface is detected"
-Blockly.Msg.TOOLTIP_NEW_EVENT_MESSAGE_1 = "Start when the blue message is received"
-Blockly.Msg.TOOLTIP_NEW_EVENT_MESSAGE_2 = "Start when the pink message is received"
-Blockly.Msg.TOOLTIP_NEW_EVENT_MESSAGE_3 = "Start when the green message is received"
-Blockly.Msg.TOOLTIP_NEW_EVENT_MESSAGE_4 = "Start when the violet message is received"
-Blockly.Msg.TOOLTIP_NEW_EVENT_MESSAGE_5 = "Start when the orange message is received"
-Blockly.Msg.TOOLTIP_NEW_EVENT_MESSAGE_6 = "Start when the indigo message is received"
+
 Blockly.Msg.TOOLTIP_NEW_EVENT_REMOTE_CODE_1 = "Start when remote 1 command is received"
 Blockly.Msg.TOOLTIP_NEW_EVENT_REMOTE_CODE_2 = "Start when remote 2 command is received"
 Blockly.Msg.TOOLTIP_NEW_EVENT_REMOTE_CODE_3 = "Start when remote 3 command is received"
@@ -531,3 +539,19 @@ Blockly.Msg.DEMO_FOLLOW_TORCH = "Follow a torch/flashlight";
 Blockly.Msg.DEMO_FOLLOW_TORCH_DISC = "Use the light sensors to follow a flashlight";
 Blockly.Msg.DEMO_BOUNCE_IN_BORDERS = "Bounce in borders";
 Blockly.Msg.DEMO_BOUNCE_IN_BORDERS_DISC = "Use the line sensor to stay inside a black line border";
+
+
+var ModalNewProjectConfirmDialogText = "Do you want to close the project?";
+var InfoText = "ℹ️ Information";
+var CloseText = "❎ Close";
+var CancelText = "❌Cancel";
+var ConnectText = "Connect";
+var OkText = "✔️ OK";
+var YesText = "✔️ Yes";
+var ConfirmText = "Confirm";
+var SaveText = '<i class="fa fa-save"></i> Save';
+var WebApiNotSupportedText ="Web Serial API is not supported in this 🌐 browser, please use Google Chrome";
+var SerialPortErrorText ="NOT connected. Ensure Kuki is switched on or used in other applications";
+var SerialPortSuccessText ="Successfully connected via the USB serial port";
+var isNotAKukiDevice ="Please Check Your Robot , Its Not a Kuki Robot!";
+var robotIsNotConnected = "Please Check Your Robot, Is Not Connected!";

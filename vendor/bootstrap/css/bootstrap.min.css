@@ -3459,7 +3459,7 @@ textarea.form-control.is-invalid {
 
 .btn:hover {
     color: var(--bs-btn-hover-color);
-    background-color: var(--bs-btn-hover-bg);
+    /* background-color: var(--bs-btn-hover-bg); */
     border-color: var(--bs-btn-hover-border-color)
 }
 

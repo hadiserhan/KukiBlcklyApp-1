@@ -93,11 +93,9 @@ Blockly.KukiLive.finish = function (a) {
   Blockly.KukiLive.variableDB_.reset();
   return a;
 };
-
 Blockly.KukiLive.scrubNakedValue = function (a) {
   return a + "\n";
 };
-
 Blockly.KukiLive.quote_ = function (a) {
   a = a.replace(/\\/g, "\\\\").replace(/\n/g, "\\\n").replace(/%/g, "\\%");
   var b = "'";
@@ -105,7 +103,6 @@ Blockly.KukiLive.quote_ = function (a) {
     (-1 === a.indexOf('"') ? (b = '"') : (a = a.replace(/'/g, "\\'")));
   return b + a + b;
 };
-
 Blockly.KukiLive.scrub_ = function (a, b) {
   var d = "";
   if (!a.outputConnection || !a.outputConnection.targetConnection) {
@@ -124,7 +121,6 @@ Blockly.KukiLive.scrub_ = function (a, b) {
   a = Blockly.KukiLive.blockToCode(a);
   return d + b + a;
 };
-
 Blockly.KukiLive.getAdjustedInt = function (a, b, d, c) {
   d = d || 0;
   a.workspace.options.oneBasedIndex && d--;
@@ -147,8 +143,11 @@ Blockly.KukiLive.getAdjustedInt = function (a, b, d, c) {
   return a;
 };
 
+//! Hadi Changes in Blocks Codes
 
-// Hadi Changes in Blocks Codes
+
+//* START EVENTS
+//! ******************************************************************* */
 Blockly.KukiLive.Events = {};
 Blockly.KukiLive.new_event_start = function (a) {
   Blockly.KukiLive.definitions_.nextNoteSharp = !1;
@@ -159,50 +158,280 @@ Blockly.KukiLive.new_event_start = function (a) {
 Blockly.KukiLive.control_stop = function (a) {
   return ("FF 55 DD 00 00 00 00-");
 };
-
 Blockly.KukiLive.event_wait_time = function (a) {
   var value = Blockly.KukiLive.valueToCode(a, "DURATION", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 65534){
+    value = 65534;
+  }
   var result = toTwoByteHex(parseInt(value));
   return ("FF 55 01 00 " + result.low + " " + result.high + " 00-");
 };
-
 Blockly.KukiLive.event_button_pressed = function (a) {
   return ("FF 55 01 01 00 00 00-");
 };
-
-Blockly.KukiLive.Control = {};
-Blockly.KukiLive.control_loop_forever = function (a) {
-  a = Blockly.KukiLive.statementToCode(a, "SUBSTACK");
-  "" == a && (a = "\tpass\n");
-  return "#loop forever \nwhile True:\n" + a;
+Blockly.KukiLive.event_message_blue = function (a) {
+  return ("");
+};
+Blockly.KukiLive.event_message_green = function (a) {
+  return ("");
+};
+Blockly.KukiLive.event_message_red = function (a) {
+  return ("");
+};
+Blockly.KukiLive.event_message_pink = function (a) {
+  return ("");
+};
+Blockly.KukiLive.event_message_purple = function (a) {
+  return ("");
+};
+Blockly.KukiLive.event_message_orange = function (a) {
+  return ("");
 };
 
-Blockly.KukiLive.control_loop_number = function (a) {
-  var value = Blockly.KukiLive.valueToCode(a, "TIMES", Blockly.KukiLive.ORDER_ATOMIC);
-  var result = toTwoByteHex(parseInt(value));
-  var branch = Blockly.KukiLive.statementToCode(a, 'SUBSTACK');
-  branch = Blockly.KukiLive.addLoopTrap(branch, a);
-  var end_loop = "FF 55 01 05 00 00 00-";
-  var loop = "FF 55 01 02 " + result.low + " " + result.high + " 00-"
-  return (loop + branch + end_loop);
+Blockly.KukiLive.control_send_message = function (a) {
+    let value = Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_ATOMIC);
+    if(value == "1"){
+      return "XBB";
+    }else if(value == "2"){
+      return "XRR";
+    }else if(value == "3"){
+      return "XGG";
+    }else if(value == "4"){
+      return "XPP";
+    }else if(value == "5"){
+      return "XVV";
+    }else if(value == "6"){
+      return "XOO";
+    }else{
+      return "";
+    }
+
 };
+
+//* END EVENTS
+//! ******************************************************************* */
+
+//* START SOUNDS
+Blockly.KukiLive.Sounds = {};
 
 Blockly.KukiLive.kuki_sound_on = function (a) {
   return ("FF 55 02 08 00 00 00-");
 };
-Blockly.KukiLive.kuki_sound_off = function (a) {
-  return ("FF 55 02 09 00 00 00-");
+//* END SOUNDS
+//! ******************************************************************* */
+
+//* START ONBOARD LED
+Blockly.KukiLive.kuki_light = function (a) {
+  var light = Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_NONE);
+  var result = toTwoByteHex(parseInt(light));
+  return ("FF 55 02 " + result.low + " 00 00 00-");
 };
 
+Blockly.KukiLive.dropdown_kuki_light = function(block) {
+  var value = block.getFieldValue('CHOICE');
+  return [value, Blockly.KukiLive.ORDER_NONE]; 
+};
+//* END LED LIGHT
+//! ******************************************************************* */
+
+//* START RGB LED
+Blockly.KukiLive.colour_picker = function(block) {
+  var code = Blockly.KukiLive.quote_(block.getFieldValue('COLOUR'));
+  return [code, Blockly.KukiLive.ORDER_ATOMIC];
+};
+
+Blockly.KukiLive.kuki_RGB_light_OFF = function (a) {
+  return ("FF 55 06 00 00 00 00-");
+};
+
+Blockly.KukiLive.kuki_RGB_light_random = function (a) {
+  return "FF 55 06 02 00 00 00-";
+};
+
+Blockly.KukiLive.kuki_RGB_light = function (a) {
+  var colourValue = Blockly.KukiLive.valueToCode(a, 'VALUE', Blockly.KukiLive.ORDER_NONE);
+  // colourValue = colourValue.replace("#", "").replace("'#'", "").replace("'", "").replace("\"", "");
+  colourValue = colourValue.replace(/['#"]/g, '');
+  colourValue = HexColorToRGB(colourValue);
+  return 'FF 55 06 01 ' + colourValue + "-";
+};
+
+Blockly.KukiLive.dropdown_kuki_RGB_light_color = function(block) {
+  var value = block.getFieldValue('CHOICE');
+  return value; 
+};
+
+Blockly.KukiLive.kuki_RGB_light_color = function (a) {
+  let value = Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_ATOMIC);
+    if(value == "G"){
+      value = "00 FF 00";
+    }else if(value == "R"){
+      value = "FF 00 00";
+    }else if(value == "B"){
+      value = "00 00 FF";
+    }else if(value == "O"){
+      value = "FF E3 60";
+    }else if(value == "P"){
+      value = "E7 00 A7";
+    }else if(value == "C"){
+      value = "77 E8 FF";
+    }else{
+      value = randomColour().replace(/['#"]/g, '');
+      value = HexColorToRGB(value);
+    }
+  return "FF 55 06 01 " + value + "-";
+};
+
+//* END RGB LED
+//! ******************************************************************* */
+
+//* START MATRIX
+Blockly.KukiLive.matrix_picker = function(block) {
+  var code = this.getFieldValue('MATRIX');
+  return [code, Blockly.KukiLive.ORDER_ATOMIC];
+};
+
+Blockly.KukiLive.kuki_matrix_btimap = function (a) {
+  var displayValue =  Blockly.KukiLive.valueToCode(a, 'MATRIX', Blockly.KukiLive.ORDER_NONE);
+  displayValue = matrix_Binary_to_four_segments(displayValue);
+  return (displayValue+"-");
+};
+
+Blockly.KukiLive.input_text = function() {
+  var code = this.getFieldValue('TEXT');
+  return [code, Blockly.KukiLive.ORDER_ATOMIC];
+};
+
+Blockly.KukiLive.kuki_matrix_string = function (a) {
+  var displayValue =  Blockly.KukiLive.valueToCode(a, 'TEXT', Blockly.KukiLive.ORDER_NONE);
+  displayValue = stringToFormattedHexChunks(displayValue);
+  return (displayValue+"-");
+};
+//* END MATRIX
+//! ******************************************************************* */
+
+//* START MOTOR STTEPPER
+Blockly.KukiLive.motion = {};
+Blockly.KukiLive.dropdown_kuki_speed = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "STEPS", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 65534){
+    value = 65534;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 01 " + result.low + " " + result.high + " 00-");
+};
+
+Blockly.KukiLive.kuki_drive_speed = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "STEPS", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 65534){
+    value = 65534;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 01 " + result.low + " " + result.high + " 00-");
+};
 
 Blockly.KukiLive.kuki_drive_forward = function (a) {
-  return ("FF 55 02 00 00 00 00-");
-};
-Blockly.KukiLive.kuki_drive_backward = function (a) {
-  return ("FF 55 02 01 00 00 00-");
+  var value = Blockly.KukiLive.valueToCode(a, "STEPS", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 65534){
+    value = 65534;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 01 " + result.low + " " + result.high + " 00-");
 };
 
-// End Hadi Changes in Block Codes
+Blockly.KukiLive.kuki_drive_backward = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "STEPS", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 65534){
+    value = 65534;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 02 " + result.low + " " + result.high + " 00-");
+};
+
+Blockly.KukiLive.kuki_turn_right = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "ANGLE", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 360){
+    value = 360;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 03 " + result.low + " " + result.high + " 00-");
+};
+
+Blockly.KukiLive.kuki_turn_left = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "ANGLE", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 360){
+    value = 360;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 04 " + result.low + " " + result.high + " 00-");
+};
+
+//* END MOTOR STTEPPER
+//! ******************************************************************* */
+
+//* START PEN
+Blockly.KukiLive.pen = {};
+
+Blockly.KukiLive.kuki_pen = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, 'CHOICE', Blockly.KukiLive.ORDER_NONE);
+
+  if(value == "0"){
+    //! PEN DOWN
+    value = "00";
+  }else if(value == "1"){
+    //! PEN UP
+    value = "01";
+  }else if(value == "2"){
+    //! PEN UP
+    value = "02";
+  }
+  return ("FF 55 07 " + value + " 00 00 00-");
+};
+
+Blockly.KukiLive.dropdown_kuki_pen = function (a) {
+  var value = a.getFieldValue('CHOICE');
+  return [value, Blockly.KukiLive.ORDER_NONE]; 
+};
+
+//* END PEN
+//! ******************************************************************* */
+
+//* START CONTROL LOOP STOP
+Blockly.KukiLive.loop = {};
+
+Blockly.KukiLive.control_forever = function (a) {
+  Blockly.KukiLive.definitions_.loopVar += 1;
+  var loopCount = Blockly.KukiLive.definitions_.loopVar;
+  loopCount = toTwoByteHex(parseInt(loopCount));
+
+  var branch = Blockly.KukiLive.statementToCode(a, 'SUBSTACK');
+  branch = Blockly.KukiLive.addLoopTrap(branch, a);
+  var end_loop = "FF 55 01 05 " + loopCount.low + " 00 00-";
+  var loop = "FF 55 01 03 " + loopCount.low + " 00 00-"
+  return (loop + branch + end_loop);
+};
+
+Blockly.KukiLive.control_loop_number = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "TIMES", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 65534){
+    value = 65534;
+  }
+  Blockly.KukiLive.definitions_.loopVar += 1;
+  var loopCount = Blockly.KukiLive.definitions_.loopVar;
+  loopCount = toTwoByteHex(parseInt(loopCount));
+
+  var result = toTwoByteHex(parseInt(value));
+  var branch = Blockly.KukiLive.statementToCode(a, 'SUBSTACK');
+  branch = Blockly.KukiLive.addLoopTrap(branch, a);
+  var end_loop = "FF 55 01 05 " + loopCount.low + " 00 00-";
+  var loop = "FF 55 01 02 " + loopCount.low + " " + result.low + " " + result.high + "-"
+  return (loop + branch + end_loop);
+};
+
+//* END CONTROL LOOP STOP
+//! ******************************************************************* */
+
+//! End Hadi Changes in Block Codes
 
 Blockly.KukiLive.drive_backwards_time = function (a) {
   checkForDriveSpeedVar();
@@ -324,14 +553,6 @@ Blockly.KukiLive.control_wait_message = function (a) {
 };
 Blockly.KukiLive.dropdown_control_set_message = function (a) {
   return [a.getFieldValue("CHOICE"), Blockly.KukiLive.ORDER_ATOMIC];
-};
-
-Blockly.KukiLive.control_send_message = function (a) {
-  return (
-    "#send message \nEd.SendIRData(" +
-    Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_ATOMIC) +
-    ")\n"
-  );
 };
 
 Blockly.KukiLive.Drive = {};
@@ -1438,7 +1659,6 @@ Blockly.KukiLive.math_positive_number = function (a) {
   return [a, Blockly.KukiLive.ORDER_ATOMIC];
 };
 
-
 function toTwoByteHex(value) {
   if (value < 0 || value > 65535) {
       console.error("Value out of range (0-65535)");
@@ -1452,4 +1672,60 @@ function toTwoByteHex(value) {
       high: highByte.toString(16).padStart(2, '0').toUpperCase(),
       low: lowByte.toString(16).padStart(2, '0').toUpperCase()
   };
+}
+
+function HexColorToRGB(colourValue)
+{
+    var hexRed, hexGreen, hexBlue;
+    var red, green, blue;
+    hexRed = colourValue.substring(0, 2);
+    hexGreen = colourValue.substring(2, 4);
+    hexBlue = colourValue.substring(4, 6);
+    red = parseInt(hexRed, 16).toString(16).padStart(2, '0').toUpperCase();
+    green = parseInt(hexGreen, 16).toString(16).padStart(2, '0').toUpperCase();
+    blue = parseInt(hexBlue, 16).toString(16).padStart(2, '0').toUpperCase();
+    var code =  red + " " + green + " " + blue;
+    return code;
+}
+
+function matrix_Binary_to_four_segments(binaryString ){
+  const hexArray = [];
+  for (let i = 0; i < 128; i += 8) {
+    const byte = binaryString.slice(i, i + 8);
+    hexArray.push(parseInt(byte, 2));
+  }
+  
+  // Split into 4 packets of 4 bytes each
+  const segments = [];
+  for (let i = 0; i < 16; i += 4) {
+    const chunk = hexArray.slice(i, i + 4);
+    const packet = [0xFF, 0x55, 0x04, ...chunk];
+    const hexPacket = packet.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+    segments.push(hexPacket);
+  }
+  
+  // Join all packets with "-"
+  const finalString = segments.join('-');
+  // console.log(finalString);
+  return finalString;
+}
+
+function stringToFormattedHexChunks(str) {
+  const result = [];
+  for (let i = 0; i < str.length; i += 4) {
+    let chunk = str.slice(i, i + 4);
+    const hexChars = [];
+
+    for (let j = 0; j < 4; j++) {
+      if (j < chunk.length) {
+        hexChars.push(chunk.charCodeAt(j).toString(16).padStart(2, '0').toUpperCase());
+      } else {
+        // Pad with 00 instead of space if end of string
+        hexChars.push("00");
+      }
+    }
+
+    result.push(`FF 55 03 ${hexChars.join(' ')}`);
+  }
+  return result.join('-');
 }

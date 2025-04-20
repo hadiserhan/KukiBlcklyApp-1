@@ -42,7 +42,7 @@ function start() {
 
   var toolbox = document.getElementById("toolbox");
   workspace = Blockly.inject('blocklyDiv', {
-    comments: false,
+    comments: true,
     disable: true,
     collapse: false,
     media: 'media/',
@@ -112,7 +112,6 @@ function start() {
 
   // workspace.registerToolboxCategoryCallback('EVENTSFLYOUT', Blockly.EventsFlyOut.flyoutCategory);
   // workspace.registerToolboxCategoryCallback('DRIVEFLYOUT', Blockly.DriveFlyOut.flyoutCategory);
-  // workspace.registerToolboxCategoryCallback('OUTPUTFLYOUT', Blockly.OutputFlyOut.flyoutCategory);
   // workspace.registerToolboxCategoryCallback('WAITFLYOUT', Blockly.WaitFlyOut.flyoutCategory);
   // workspace.registerToolboxCategoryCallback('CONTROLFLYOUT', Blockly.ControlFlyOut.flyoutCategory);
 
@@ -141,6 +140,8 @@ function start() {
   // clearBlocks();
   // setDataBox("USBbox");
 }
+
+
 
 function checkStart(event){
   if (event.type === Blockly.Events.BLOCK_CREATE) {
@@ -338,7 +339,7 @@ async function compileAndSendUserCode() {
         // bootLoader error
         console.log("bootLoader out of date, need to link to FW modal...");
 
-        var strUpdateRequired = '<p>To program your Edison you will need to update the firmware to the latest version: '  + updateFirmwareVersion + '.</p><button type="button" onclick="gotoFirmwareUpdate();" class="btn btn-primary btn-sm">Update firmware</button>';
+        var strUpdateRequired = '<p>To program your Kuki you will need to update the firmware to the latest version: '  + updateFirmwareVersion + '.</p><button type="button" onclick="gotoFirmwareUpdate();" class="btn btn-primary btn-sm">Update firmware</button>';
 
         programOutput( strUpdateRequired, 'clear', 'info' );
         jQuery('#modalProgramming').modal();
@@ -350,7 +351,7 @@ async function compileAndSendUserCode() {
         programOutput( 'Firmware updated required. Updating now...', 'append', 'info' );
         //stop a current program if there is one
         await webUSBCommandStopUserProgram();
-        //Set Edison to boot
+        //Set Kuki to boot
         await webUSBCommandReset(1);
 
         //download firmware file
@@ -387,7 +388,7 @@ async function compileAndSendUserCode() {
 
   } else {
 
-    programOutput('<p>To program your Edison you will need to update the firmware to the latest version: '  + updateFirmwareVersion + '.</p><button type="button" onclick="gotoFirmwareUpdate();" class="btn btn-primary btn-sm">Update firmware</button>', 'clear', 'info' );
+    programOutput('<p>To program your Kuki you will need to update the firmware to the latest version: '  + updateFirmwareVersion + '.</p><button type="button" onclick="gotoFirmwareUpdate();" class="btn btn-primary btn-sm">Update firmware</button>', 'clear', 'info' );
 
     jQuery('#modalProgramming').modal();
 
@@ -413,7 +414,7 @@ function APIcall(pythonCode) {
   jQuery('.modal').modal('hide');
   jQuery('#modalProgramming').modal();
 
-  var URL = "https://api.edisonrobotics.net/ep/compile/usb";
+  var URL = "https://api.Kukirobotics.net/ep/compile/usb";
   console.log(URL);
 
   var request = new XMLHttpRequest();
@@ -434,7 +435,7 @@ function APIcall(pythonCode) {
         //return sendData;
         webUSBCommandPutUserProgram(sendData);
 
-        programOutput('OK! The program has loaded to your Edison.', 'append', 'success');
+        programOutput('OK! The program has loaded to your Kuki.', 'append', 'success');
 
         setTimeout( function() {
           jQuery('#modalProgramming').modal('hide');

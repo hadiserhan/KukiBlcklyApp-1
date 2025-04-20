@@ -1,5 +1,3 @@
-
-
 let port;
 let writer;
 let textDecoder;
@@ -7,18 +5,20 @@ let readableStreamClosed;
 let reader;
 let isConnected = false;
 var IsKuki = false;
+var KukiVersion = "";
 var iskukichecked = false;
 var connectionType = "Serial";
+var AppSource = "web";
 var on_running_code = false;
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function connectSerial() {
+async function kukiConnectSerial() {
 if (navigator.serial) {
     try 
     {
         port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
+        await port.open({ baudRate: 9600 });
         writer = port.writable.getWriter();
         textDecoder = new TextDecoderStream();
         readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
@@ -26,11 +26,8 @@ if (navigator.serial) {
         let buffer = '';
 
         ConnectedSerialPort();
-        setTimeout(sendCheckCommand, 3000);
-        setTimeout(IsKukiDevice, 4000);
-        // setTimeout(checkMicropythonVersion, 2500);
-        // setTimeout(ShowOttoFilesCommand, 3000);
-        
+        setTimeout(sendCheckISKukiCommand, 3000);
+        setTimeout(IsKukiDevice, 4000);      
         while (true) {
             const { value, done } = await reader.read();
             if (done) {
@@ -40,36 +37,21 @@ if (navigator.serial) {
             }
             try
             {     
-                buffer += value; // Gelen veriyi buffer'a ekle
+                buffer += value; 
                 let endIndex;
                 var fullMessage = "";
 
                 while ((endIndex = buffer.indexOf('\n')) >= 0) {
-                    fullMessage = buffer.substring(0, endIndex).trim(); // Sonlandırıcıya kadar olan kısmı al
+                    fullMessage = buffer.substring(0, endIndex).trim(); 
                     //console.log('Full Message:', fullMessage);
-                    buffer = buffer.substring(endIndex + 1); // Kalan buffer'ı güncelle
+                    buffer = buffer.substring(endIndex + 1);
                 }
-
                 SerialData(fullMessage);
                 console.log(fullMessage);
-                var termValue = value;
-                // termValue = MessagePrepare(termValue);
-                // console.log(termValue);
-
-                // if(window.localStorage.getItem("Page") == "Vertical")
-                // term.write(termValue);
-
-                // if(isFileInput == false && fullMessage != undefined)
-                // {
-                //     if((fullMessage.toUpperCase().indexOf("ERROR") >= 0) && fullMessage.indexOf("_boot.py") < 0)
-                //     {
-                //         console.log(fullMessage);
-                //         //showModalDialog(ErrorText + "\n" + fullMessage, "error");
-                //     }
-                // }
 
                 if(fullMessage.includes("Kuki") && iskukichecked == false)
                 {
+                    KukiVersion = "V1.2.25"
                     IsKuki = true;
                     iskukichecked = true;
                 }
@@ -82,22 +64,18 @@ if (navigator.serial) {
         }
         
     } catch (err) {
-        console.log("SerialPortErrorText");
-    //   showModalDialog(SerialPortErrorText, "error");
+        showModalDialog(SerialPortErrorText, "error");
         DisconnectedSerialPort();
     }
 
     } else {
-    console.log("WebApiNotSupportedText");
-    // showModalDialog(WebApiNotSupportedText, "error");
+        showModalDialog(WebApiNotSupportedText, "error");
     }
 }
 
-async function disConnectSerial() {
+async function kukiDisConnectSerial() {
     try
         {
-        // $("#modalConfirm").modal('hide');
-    
         await writeSerial("04");
         reader.cancel();
         reader.releaseLock();
@@ -421,23 +399,44 @@ async function writeSerial(send) {
     await wait(10);
 }
 
+// check If is Kuki Device
 function IsKukiDevice() 
 { 
    if(IsKuki == false){
     //   showConfirmFirmware();
     console.log("Not Kuki Device");
+    showModalDialog(isNotAKukiDevice, "error");
+    disConnect();
    }else{
-    console.log("IS Kuki Device");
+    if(isConnected){
+        console.log("IS Kuki Device");
+        $("#kuki_version").text(KukiVersion);
+        $(".Kuki-version").show();
+        enableRunButton(true);
+    }
    }
 }
 
-async function sendCheckCommand() 
+async function sendCheckISKukiCommand() 
 { 
-    console.log("Send command");
-    await writeSerial('DE');
-    await wait(10);
+    if(isConnected){
+        console.log("Send CHECK command");
+        await writeSerial('DE');
+        await wait(10);
+    }
 }
 
+// WEB
+async function sendStopCommand() 
+{ 
+    if(isConnected){
+        console.log("Send STOP command");
+        await writeSerial('AA');
+        await wait(10);
+    }
+}
+
+// WEB
 function SerialData(value) 
 {
     try 
