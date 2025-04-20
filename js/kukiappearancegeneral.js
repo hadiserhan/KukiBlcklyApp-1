@@ -7,8 +7,21 @@ var is_arduino_start = false;
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+let currentAudio = null;
 const soundPaths = {
-    1: 'media/music/1.mp3'
+    0: 'media/music/cat.mp3',
+    1: 'media/music/seagull.mp3',
+    2: 'media/music/birds.mp3',
+    3: 'media/music/cow.mp3',
+    4: 'media/music/dog.mp3',
+    5: 'media/music/rooster.mp3',
+
+    6: 'media/music/music_1.mp3',
+    7: 'media/music/music_2.mp3',
+    8: 'media/music/music_3.mp3',
+    9: 'media/music/music_4.mp3',
+    10: 'media/music/music_5.mp3',
+    11: 'media/music/music_6.mp3',
   }
 
 const soundPool = {};

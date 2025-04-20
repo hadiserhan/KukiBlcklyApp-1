@@ -33009,7 +33009,8 @@ Blockly.FieldDropdown.prototype.dispose = function () {
   Blockly.FieldDropdown.superClass_.dispose.call(this);
 };
 Blockly.Field.register("field_dropdown", Blockly.FieldDropdown);
-Blockly.FieldIconMenu = function (a) {
+Blockly.FieldIconMenu = function (a , hideOnClick) {
+  this.notHideOnClick_ = hideOnClick;
   this.icons_ = a;
   Blockly.FieldIconMenu.superClass_.constructor.call(this, a[0].value);
   this.addArgType("iconmenu");
@@ -33166,6 +33167,7 @@ Blockly.FieldIconMenu.prototype.showEditor_ = function () {
 Blockly.FieldIconMenu.prototype.buttonClick_ = function (a) {
   a = a.target.getAttribute("data-value");
   this.setValue(a);
+  if(this.notHideOnClick_) return;
   Blockly.DropDownDiv.hide();
 };
 Blockly.FieldIconMenu.prototype.onHide_ = function () {

@@ -180,29 +180,39 @@ export  class ArduinoConnection extends EventTarget {
     
     if (this.buffer.length === 0) return;
 
-    if (this.buffer[0] === 0xFF && this.buffer[1] !== 0x55) {
-      // Try to match "Kuki_" + version + "\n"
-      const str = this.buffer.slice(1).map(b => String.fromCharCode(b)).join('');
-      const versionMatch = str.match(/^Kuki_[\d\.]+\n?/);
-  
-      if (versionMatch) {
-        const firmwareVersion = versionMatch[0].trim();
-        this.dispatchEvent(new CustomEvent("firmwareVersion", { detail: firmwareVersion }));
-        this._firmwareChecked = true;
-        if (firmwareVersion.toUpperCase().includes(this._expectedFirmware)) {
-          this.dispatchEvent(new CustomEvent("firmwareValid",{ detail: firmwareVersion }));
-        } else {
-          this.dispatchEvent(new Event("firmwareMismatch"));
-        }
-  
-        // Remove matched bytes from buffer
-        this.buffer.splice(0, 1 + firmwareVersion.length);
-        return;
-      }
-    }
-
     if (this.buffer.length >= 3) {
-      if (this.buffer[0] === 0xFF && this.buffer[1] === 0x55) {
+      if (this.buffer[0] === 0xFF && this.buffer[1] == 0x44) {
+        //! check firmware received.
+        // Try to match "Kuki_" + version + "\n"
+        const str = this.buffer.slice(2).map(b => String.fromCharCode(b)).join('');
+        const versionMatch = str.match(/^Kuki_[\d\.]+\n?/);
+        if (versionMatch) {
+          const firmwareVersion = versionMatch[0].trim();
+          this.dispatchEvent(new CustomEvent("firmwareVersion", { detail: firmwareVersion }));
+          this._firmwareChecked = true;
+          if (firmwareVersion.toUpperCase().includes(this._expectedFirmware)) {
+            this.dispatchEvent(new CustomEvent("firmwareValid",{ detail: firmwareVersion }));
+          } else {
+            this.dispatchEvent(new Event("firmwareMismatch"));
+          }
+    
+          // Remove matched bytes from buffer
+          this.buffer.splice(0, 2 + firmwareVersion.length);
+          return;
+        }
+      }else if (this.buffer[0] === 0xFF && this.buffer[1] === 0x55) {
+        const cmd_two = this.buffer[2];
+        switch (cmd_two) {
+          case 0xEE:
+            this.dispatchEvent(new Event("codeStarted")); break;
+          case 0xDD:
+            this.dispatchEvent(new Event("codeStopped")); break;
+          default:
+            this.dispatchEvent(new CustomEvent("receiveData" , { detail: this.buffer}));
+            // this._log("Unknown command: " + cmd_two);
+          }
+        this.buffer = [];
+      }else if (this.buffer[0] === 0xFF && this.buffer[1] === 0x66) {
         const cmd_two = this.buffer[2];
         switch (cmd_two) {
           case 0xEE:
@@ -220,7 +230,7 @@ export  class ArduinoConnection extends EventTarget {
     }
   }
 
-  _verifyFirmware(maxRetries = 3, timeout = 10000) {
+  _verifyFirmware(maxRetries = 3, timeout = 3000) {
     return new Promise((resolve) => {
       this._firmwareChecked = false;
       let attempt = 0;

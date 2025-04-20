@@ -722,19 +722,113 @@ Blockly.Blocks.dropdown_kuki_sound_animals = {
     this.appendDummyInput()
         .appendField(new Blockly.FieldIconMenu(
             [
-              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_low_speed_bar.svg',
-                value: '0', width: 48, height: 48, alt: 'down'},
-              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_medium_speed_bar.svg',
-                value: '1', width: 48, height: 48, alt: 'up'},
-              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_full_speed_bar.svg',
-                value: '2', width: 48, height: 48, alt: 'up'}
-            ]), 'CHOICE');
+              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sounds_animal_1.svg',
+                value: '0', width: 48, height: 48, alt: '🐱 Cat'},
+              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sounds_animal_2.svg',
+                value: '1', width: 48, height: 48, alt: '🐦 Seagull'},
+              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sounds_animal_3.svg',
+                value: '2', width: 48, height: 48, alt: '🐦 Bird'},
+                {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sounds_animal_4.svg',
+                  value: '3', width: 48, height: 48, alt: '🐄 Cow'},
+                {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sounds_animal_5.svg',
+                  value: '4', width: 48, height: 48, alt: '🐶 Dog'},
+                {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sounds_animal_6.svg',
+                  value: '5', width: 48, height: 48, alt: '🐓 Rooster'},
+            ],true), 'CHOICE');
     this.setOutput(true);
     this.setColour(Blockly.Colours.sounds.primary,
       Blockly.Colours.sounds.secondary,
       Blockly.Colours.sounds.tertiary
     );
-  }
+  },
+  onchange: function (a) {
+    if (
+      (a.type == Blockly.Events.CHANGE &&
+        this.id == a.blockId)
+    ){
+      (a = parseFloat(this.inputList[0].fieldRow[0].value_)),
+        (a = +a.toFixed(2));
+        if(a == 0){
+          this.setTooltip(Blockly.Msg.KUKI_TOOLTIP_TURN_LED_OFF);
+        }else if(a == 1){
+          this.setTooltip(Blockly.Msg.KUKI_TOOLTIP_TURN_LED_ON);
+        }else{
+          this.setTooltip(Blockly.Msg.KUKI_TOOLTIP_TOGGLE_LED);
+        }
+        runJSSound(a);
+      }
+  },
+};
+Blockly.Blocks.kuki_sound_music = {
+  init: function () {
+    this.jsonInit({
+      id: "kuki_sound_on",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_image",
+          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/kuki_sound_effects.svg",
+          "width": 40,
+          "height": 40,
+          "alt": "Sound Animal"
+        },
+        {
+          "type": "input_value",
+          "name": "CHOICE",
+        }
+      ],
+      inputsInline: !0,
+      previousStatement: null,
+      nextStatement: null,
+      category:Blockly.Categories.sounds,
+      colour: Blockly.Colours.sounds.primary,
+      colourSecondary: Blockly.Colours.sounds.secondary,
+      colourTertiary: Blockly.Colours.sounds.tertiary,
+    });
+    this.setTooltip(Blockly.Msg.TOOLTIP_LIGHT_SOUND_BEEP);
+  },
+};
+Blockly.Blocks.dropdown_kuki_sound_music = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldIconMenu(
+            [
+              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sound_effects_1.svg',
+                value: '6', width: 48, height: 48, alt: ''},
+              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sound_effects_2.svg',
+                value: '7', width: 48, height: 48, alt: ''},
+              {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sound_effects_3.svg',
+                value: '8', width: 48, height: 48, alt: ''},
+                {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sound_effects_4.svg',
+                  value: '9', width: 48, height: 48, alt: ''},
+                {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sound_effects_5.svg',
+                  value: '10', width: 48, height: 48, alt: ''},
+                {src: Blockly.mainWorkspace.options.pathToMedia + 'kuki/kuki_sound_effects_6.svg',
+                  value: '11', width: 48, height: 48, alt: ''},
+            ],true), 'CHOICE');
+    this.setOutput(true);
+    this.setColour(Blockly.Colours.sounds.primary,
+      Blockly.Colours.sounds.secondary,
+      Blockly.Colours.sounds.tertiary
+    );
+  },
+  onchange: function (a) {
+    if (
+      (a.type == Blockly.Events.CHANGE &&
+        this.id == a.blockId)
+    ){
+      (a = parseFloat(this.inputList[0].fieldRow[0].value_)),
+        (a = +a.toFixed(2));
+        if(a == 0){
+          this.setTooltip(Blockly.Msg.KUKI_TOOLTIP_TURN_LED_OFF);
+        }else if(a == 1){
+          this.setTooltip(Blockly.Msg.KUKI_TOOLTIP_TURN_LED_ON);
+        }else{
+          this.setTooltip(Blockly.Msg.KUKI_TOOLTIP_TOGGLE_LED);
+        }
+        runJSSound(a);
+      }
+  },
 };
 //* END SOUNDS
 //! ******************************************************************* */
@@ -1412,40 +1506,6 @@ Blockly.Blocks.input_text = {
     });
   },
 };
-
-Blockly.Blocks.field_dropdown_1 = {
-  init: function() {
-    var input = this.appendDummyInput()
-        .appendField('flag');
-    var options = [
-        ['none', 'NONE'],
-        [{'src': 'canada.png', 'width': 50, 'height': 25, 'alt': 'Canada'}, 'CANADA'],
-        [{'src': 'usa.png', 'width': 50, 'height': 25, 'alt': 'USA'}, 'USA'],
-        [{'src': 'mexico.png', 'width': 50, 'height': 25, 'alt': 'Mexico'}, 'MEXICO']
-    ];
-    input.appendField(new Blockly.FieldTextDropdown(options), 'FLAG');
-    this.setOutput(true);
-    this.setColour(Blockly.Colours.pen.primary,
-      Blockly.Colours.pen.secondary,
-      Blockly.Colours.pen.tertiary
-    );
-  }
-};
-
-Blockly.Blocks.field_dropdown_2 = {
-  init: function () {
-    this.jsonInit({
-      message0: "%1",
-      args0: [{ type: "field_textdropdown", name: "TEXT" }],
-      output: "String",
-      outputShape: Blockly.OUTPUT_SHAPE_ROUND,
-      colour: Blockly.Colours.textField,
-      colourSecondary: Blockly.Colours.textField,
-      colourTertiary: Blockly.Colours.textField,
-    });
-  },
-};
-
 //* END  INPUT CLASSES
 //! ******************************************************************* */
 //* START  GENERAL FUNCTIONS

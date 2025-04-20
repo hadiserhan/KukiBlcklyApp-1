@@ -217,6 +217,24 @@ Blockly.KukiLive.Sounds = {};
 Blockly.KukiLive.kuki_sound_on = function (a) {
   return ("FF 55 02 08 00 00 00-");
 };
+Blockly.KukiLive.kuki_sound_animals = function (a) {
+  var sound_animal = Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_NONE);
+  var result = toTwoByteHex(parseInt(sound_animal));
+  return ("FF 55 05 " + result.low + " 00 00 00-");
+};
+Blockly.KukiLive.dropdown_kuki_sound_animals = function (block) {
+  var value = block.getFieldValue('CHOICE');
+  return [value, Blockly.KukiLive.ORDER_NONE];
+};
+Blockly.KukiLive.kuki_sound_music = function (a) {
+  var sound_music = Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_NONE);
+  var result = toTwoByteHex(parseInt(sound_music));
+  return ("FF 55 05 " + result.low + " 00 00 00-");
+};
+Blockly.KukiLive.dropdown_kuki_sound_music = function (block) {
+  var value = block.getFieldValue('CHOICE');
+  return [value, Blockly.KukiLive.ORDER_NONE];
+};
 //* END SOUNDS
 //! ******************************************************************* */
 
@@ -312,22 +330,15 @@ Blockly.KukiLive.kuki_matrix_string = function (a) {
 
 //* START MOTOR STTEPPER
 Blockly.KukiLive.motion = {};
-Blockly.KukiLive.dropdown_kuki_speed = function (a) {
-  var value = Blockly.KukiLive.valueToCode(a, "STEPS", Blockly.KukiLive.ORDER_ATOMIC);
-  if(value > 65534){
-    value = 65534;
-  }
-  var result = toTwoByteHex(parseInt(value));
-  return ("FF 55 08 01 " + result.low + " " + result.high + " 00-");
+Blockly.KukiLive.dropdown_kuki_speed = function (block) {
+  var value = block.getFieldValue('CHOICE');
+  return [value, Blockly.KukiLive.ORDER_NONE]; 
 };
 
 Blockly.KukiLive.kuki_drive_speed = function (a) {
-  var value = Blockly.KukiLive.valueToCode(a, "STEPS", Blockly.KukiLive.ORDER_ATOMIC);
-  if(value > 65534){
-    value = 65534;
-  }
-  var result = toTwoByteHex(parseInt(value));
-  return ("FF 55 08 01 " + result.low + " " + result.high + " 00-");
+  var speed = Blockly.KukiLive.valueToCode(a, "CHOICE", Blockly.KukiLive.ORDER_NONE);
+  var result = toTwoByteHex(parseInt(speed));
+  return ("FF 55 08 00 " + result.low + " " + result.high + " 00-");
 };
 
 Blockly.KukiLive.kuki_drive_forward = function (a) {

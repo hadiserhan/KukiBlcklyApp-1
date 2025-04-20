@@ -191,31 +191,15 @@ function displayAllCode(e){
 // -------- Bluetooth ----------------
 
 function runJSFunction(e){
-    if (e.detail[0] === 0xFF && e.detail[1] === 0x55) {
+    if (e.detail[0] === 0xFF && e.detail[1] === 0x66) {
         const cmd_two = e.detail[2];
-        const cmd_three = e.detail[3];
         switch (cmd_two) {
             case 0x05:
                 runJSSound(e.detail[3]);
                 addLogEntry(`Play Sound ${e.detail[3]}-${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
             break;
-                switch (cmd_three) {
-                    case 0x01:
-                        addLogEntry(`forward ${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
-                    break;
-                    case 0x02:
-                        addLogEntry(`backward ${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
-                    break;
-                    case 0x03:
-                        addLogEntry(`right ${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
-                    break;
-                    case 0x04:
-                        addLogEntry(`left ${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
-                    break;
-                }
-            break;
             default:
-                addLogEntry(`unkown command ${e.detail[2]}-${e.detail[3]}-${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
+                addLogEntry(`unkown JS Function command ${e.detail[2]}-${e.detail[3]}-${e.detail[4]}-${e.detail[5]}-${e.detail[6]}`, 'block');
             break;
         }
     }
@@ -224,11 +208,26 @@ function runJSFunction(e){
 function runJSSound(data){
     const audio = soundPool[data];
     if (audio) {
-      const clone = audio.cloneNode(); // allows overlapping play
+      // Stop previous audio
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+  
+      // Clone and play new audio
+      const clone = audio.cloneNode();
+      currentAudio = clone;
       clone.play().catch(e => console.warn("Audio play error:", e));
     } else {
       console.warn(`Sound with key ${data} not found`);
     }
+    // const audio = soundPool[data];
+    // if (audio) {
+    //   const clone = audio.cloneNode(); // allows overlapping play
+    //   clone.play().catch(e => console.warn("Audio play error:", e));
+    // } else {
+    //   console.warn(`Sound with key ${data} not found`);
+    // }
 }
 
 // --------- END SOUNDS
