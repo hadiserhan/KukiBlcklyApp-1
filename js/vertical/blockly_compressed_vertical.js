@@ -12596,6 +12596,26 @@ Blockly.DropDownDiv.showPositionedByBlock = function (a, b, c, d) {
   Blockly.DropDownDiv.setBoundsElement(b.workspace.getParentSvg().parentNode);
   return Blockly.DropDownDiv.show(this, f, a, f, e, c);
 };
+Blockly.DropDownDiv.showPositionedByField = function(owner,
+    opt_onHide, opt_secondaryYOffset) {
+  // TODO shakao: check if scale needed? google/blockly/commit/2c624c51446a2d5573f4b5e7f4d14d85e3ba72c0
+  var position = owner.fieldGroup_.getBoundingClientRect();
+  // If we can fit it, render below the block.
+  var primaryX = position.left + position.width / 2;
+  var primaryY = position.bottom;
+  // If we can't fit it, render above the entire parent block.
+  var secondaryX = primaryX;
+  var secondaryY = position.top;
+  if (opt_secondaryYOffset) {
+    secondaryY += opt_secondaryYOffset;
+  }
+  // Set bounds to workspace; show the drop-down.
+  Blockly.DropDownDiv.positionToField_ = true;
+  Blockly.DropDownDiv.setBoundsElement(
+      owner.getSourceBlock().workspace.getParentSvg().parentNode);
+  return Blockly.DropDownDiv.show(
+      owner, primaryX, primaryY, secondaryX, secondaryY, opt_onHide);
+};
 Blockly.DropDownDiv.show = function (a, b, c, d, e, f) {
   Blockly.DropDownDiv.owner_ = a;
   Blockly.DropDownDiv.onHide_ = f;
@@ -17989,6 +18009,10 @@ Blockly.Field.prototype.setSourceBlock = function (a) {
   goog.asserts.assert(!this.sourceBlock_, "Field already bound to a block.");
   this.sourceBlock_ = a;
 };
+Blockly.Field.prototype.getSourceBlock = function() {
+  return this.sourceBlock_;
+};
+
 Blockly.Field.prototype.init = function () {
   if (!this.fieldGroup_) {
     this.fieldGroup_ = Blockly.utils.createSvgElement("g", {}, null);
@@ -18210,24 +18234,78 @@ Blockly.Field.prototype.updateTextNode_ = function () {
 Blockly.Field.prototype.getValue = function () {
   return this.getText();
 };
-Blockly.Field.prototype.setValue = function (a) {
-  if (null !== a) {
-    var b = this.getValue();
-    b != a &&
-      (this.sourceBlock_ &&
-        Blockly.Events.isEnabled() &&
-        Blockly.Events.fire(
-          new Blockly.Events.BlockChange(
-            this.sourceBlock_,
-            "field",
-            this.name,
-            b,
-            a
-          )
-        ),
-      this.setText(a));
-  }
+Blockly.Field.prototype.doClassValidation_ = function(newValue) {
+  // For backwards compatibility.
+  newValue = this.classValidator(newValue);
+  return newValue;
 };
+Blockly.Field.prototype.doValueUpdate_ = function(newValue) {
+  this.value_ = newValue;
+  this.isDirty_ = true;
+  // For backwards compatibility.
+  this.text_ = String(newValue);
+};
+Blockly.Field.prototype.processValidation_ = function(newValue,
+    validatedValue) {
+  if (validatedValue === null) {
+    this.doValueInvalid_(newValue);
+    if (this.isDirty_) {
+      this.forceRerender();
+    }
+    return Error();
+  }
+  if (validatedValue !== undefined) {
+    newValue = validatedValue;
+  }
+  return newValue;
+};
+Blockly.Field.prototype.doValueInvalid_ = function(_invalidValue) {
+  // NOP
+};
+Blockly.Field.prototype.setValue = function(newValue) {
+  var doLogging = false;
+  if (newValue === null) {
+    doLogging && console.log('null, return');
+    // Not a valid value to check.
+    return;
+  }
+
+  var validatedValue = this.doClassValidation_(newValue);
+  // Class validators might accidentally forget to return, we'll ignore that.
+  newValue = this.processValidation_(newValue, validatedValue);
+  if (newValue instanceof Error) {
+    doLogging && console.log('invalid class validation, return');
+    return;
+  }
+
+  var localValidator = this.getValidator();
+  if (localValidator) {
+    validatedValue = localValidator.call(this, newValue);
+    // Local validators might accidentally forget to return, we'll ignore that.
+    newValue = this.processValidation_(newValue, validatedValue);
+    if (newValue instanceof Error) {
+      doLogging && console.log('invalid local validation, return');
+      return;
+    }
+  }
+  var oldValue = this.getValue();
+  if (oldValue === newValue) {
+    doLogging && console.log('same, return');
+    // No change.
+    return;
+  }
+
+  if (this.sourceBlock_ && Blockly.Events.isEnabled()) {
+    Blockly.Events.fire(new Blockly.Events.BlockChange(
+        this.sourceBlock_, 'field', this.name, oldValue, newValue));
+  }
+  this.doValueUpdate_(newValue);
+  if (this.isDirty_) {
+    this.forceRerender();
+  }
+  doLogging && console.log(this.value_);
+};
+
 Blockly.Field.prototype.onMouseDown_ = function (a) {
   this.sourceBlock_ &&
     this.sourceBlock_.workspace &&
@@ -18290,6 +18368,12 @@ Blockly.FieldLabel.prototype.getSvgRoot = function () {
 };
 Blockly.FieldLabel.prototype.setTooltip = function (a) {
   this.textElement_.tooltip = a;
+};
+Blockly.FieldLabel.prototype.doClassValidation_ = function(newValue) {
+  if (newValue === null || newValue === undefined) {
+    return null;
+  }
+  return String(newValue);
 };
 Blockly.Field.register("field_label", Blockly.FieldLabel);
 Blockly.FieldLabelSerializable = function (a, b) {
@@ -26185,18 +26269,35 @@ goog.color.names = {
   yellow: "#ffff00",
   yellowgreen: "#9acd32",
 };
-goog.color.parse = function (a) {
-  var b = {};
-  a = String(a);
-  var c = goog.color.prependHashIfNecessaryHelper(a);
-  if (goog.color.isValidHexColor_(c))
-    return (b.hex = goog.color.normalizeHex(c)), (b.type = "hex"), b;
-  c = goog.color.isValidRgbColor_(a);
-  if (c.length)
-    return (b.hex = goog.color.rgbArrayToHex(c)), (b.type = "rgb"), b;
-  if (goog.color.names && (c = goog.color.names[a.toLowerCase()]))
-    return (b.hex = c), (b.type = "named"), b;
-  throw Error(a + " is not a valid color string");
+goog.color.parse = function (str) {
+  str = String(str).toLowerCase().trim();
+  var hex = goog.color.names[str];
+  if (hex) {
+    // e.g. 'red'
+    return hex;
+  }
+  // pxt-blockly: also handle "0x######" hex format
+  hex = str.substring(0, 2) == '0x' ? '#' + str.substring(2) : str;
+  hex = hex[0] == '#' ? hex : '#' + hex;
+  if (/^#[0-9a-f]{6}$/.test(hex)) {
+    // e.g. '#00ff88'
+    return hex;
+  }
+  if (/^#[0-9a-f]{3}$/.test(hex)) {
+    // e.g. '#0f8'
+    return ['#', hex[1], hex[1], hex[2], hex[2], hex[3], hex[3]].join('');
+  }
+  var rgb = str.match(/^(?:rgb)?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+  if (rgb) {
+    // e.g. 'rgb(0, 128, 255)'
+    var r = Number(rgb[1]);
+    var g = Number(rgb[2]);
+    var b = Number(rgb[3]);
+    if (r >= 0 && r < 256 && g >= 0 && g < 256 && b >= 0 && b < 256) {
+      return goog.color.rgbToHex(r, g, b);
+    }
+  }
+  return null;
 };
 goog.color.isValidColor = function (a) {
   var b = goog.color.prependHashIfNecessaryHelper(a);
@@ -27742,102 +27843,141 @@ goog.ui.ColorPicker.SIMPLE_GRID_COLORS =
   "#ffffff #cccccc #c0c0c0 #999999 #666666 #333333 #000000 #ffcccc #ff6666 #ff0000 #cc0000 #990000 #660000 #330000 #ffcc99 #ff9966 #ff9900 #ff6600 #cc6600 #993300 #663300 #ffff99 #ffff66 #ffcc66 #ffcc33 #cc9933 #996633 #663333 #ffffcc #ffff33 #ffff00 #ffcc00 #999900 #666600 #333300 #99ff99 #66ff99 #33ff33 #33cc00 #009900 #006600 #003300 #99ffff #33ffff #66cccc #00cccc #339999 #336666 #003333 #ccffff #66ffff #33ccff #3366ff #3333ff #000099 #000066 #ccccff #9999ff #6666cc #6633ff #6600cc #333399 #330099 #ffccff #ff99ff #cc66cc #cc33cc #993399 #663366 #330033".split(
     " "
   );
-Blockly.FieldColour = function (a, b) {
-  Blockly.FieldColour.superClass_.constructor.call(this, a, b);
-  this.addArgType("colour");
+Blockly.FieldColour = function(opt_value, opt_validator) {
+  opt_value = this.doClassValidation_(opt_value);
+  Blockly.FieldColour.superClass_.constructor.call(
+      this, opt_value, opt_validator);
+  this.addArgType('colour');
 };
 goog.inherits(Blockly.FieldColour, Blockly.Field);
-Blockly.FieldColour.fromJson = function (a) {
-  return new Blockly.FieldColour(a.colour);
+Blockly.FieldColour.fromJson = function(options) {
+  return new Blockly.FieldColour(options['colour']);
 };
 Blockly.FieldColour.prototype.colours_ = null;
 Blockly.FieldColour.prototype.columns_ = 0;
-Blockly.FieldColour.prototype.init = function (a) {
-  this.fieldGroup_ ||
-    (Blockly.FieldColour.superClass_.init.call(this, a),
-    this.setValue(this.getValue()));
+Blockly.FieldColour.prototype.DROPDOWN_BACKGROUND_COLOUR = 'white';
+Blockly.FieldColour.prototype.DROPDOWN_BORDER_COLOUR = 'silver';
+Blockly.FieldColour.prototype.colorPicker_ = null;
+Blockly.FieldColour.prototype.columns_ = 0;
+Blockly.FieldColour.prototype.titles_ = null;
+Blockly.FieldColour.prototype.colours_ = null;
+Blockly.FieldColour.prototype.isDirty_ = false;
+Blockly.FieldColour.prototype.CURSOR = 'default';
+Blockly.FieldColour.prototype.SERIALIZABLE = true;
+Blockly.FieldColour.DEFAULT_HEIGHT = 12;
+Blockly.FieldColour.DEFAULT_WIDTH = 16;
+
+Blockly.FieldColour.prototype.initView = function() {
+  this.size_ = new goog.math.Size(Blockly.FieldColour.DEFAULT_WIDTH,
+      Blockly.FieldColour.DEFAULT_HEIGHT);
+  this.createBorderRect_();
+  // pxt-blockly: use source block color instead of rect
+  this.borderRect_.style['fillOpacity'] = 0;
+
+  // pxt-blockly: Scratch rendering
+  if (this.sourceBlock_) {
+    this.setValue(this.getValue());
+  }
 };
-Blockly.FieldColour.prototype.CURSOR = "default";
-Blockly.FieldColour.prototype.dispose = function () {
-  Blockly.WidgetDiv.hideIfOwner(this);
-  Blockly.FieldColour.superClass_.dispose.call(this);
+Blockly.FieldColour.prototype.doClassValidation_ = function(newValue) {
+  if (typeof newValue != 'string') {
+    return null;
+  }
+  return goog.color.parse(newValue);
 };
-Blockly.FieldColour.prototype.getValue = function () {
-  return this.colour_;
+Blockly.FieldColour.prototype.doValueUpdate_ = function(newValue) {
+  this.value_ = newValue;
+  if (this.borderRect_) {
+    this.borderRect_.style.fill = newValue;
+  }
+
+  // pxt-blockly: Scratch rendering
+  if (this.sourceBlock_) {
+    this.sourceBlock_.setColour(newValue, newValue, newValue);
+  }
 };
-Blockly.FieldColour.prototype.setValue = function (a) {
-  this.sourceBlock_ &&
-    Blockly.Events.isEnabled() &&
-    this.colour_ != a &&
-    Blockly.Events.fire(
-      new Blockly.Events.BlockChange(
-        this.sourceBlock_,
-        "field",
-        this.name,
-        this.colour_,
-        a
-      )
-    );
-  this.colour_ = a;
-  this.sourceBlock_ && this.sourceBlock_.setColour(a, a, a, a);
+Blockly.FieldColour.prototype.getText = function() {
+  var colour = this.value_;
+  // Try to use #rgb format if possible, rather than #rrggbb.
+  if (/^#(.)\1(.)\2(.)\3$/.test(colour)) {
+    colour = '#' + colour[1] + colour[3] + colour[5];
+  }
+  return colour;
 };
-Blockly.FieldColour.prototype.getText = function () {
-  var a = this.colour_,
-    b = a.match(/^#(.)\1(.)\2(.)\3$/);
-  b && (a = "#" + b[1] + b[2] + b[3]);
-  return a;
-};
-Blockly.FieldColour.prototype.getSize = function () {
-  return new goog.math.Size(
-    Blockly.BlockSvg.FIELD_WIDTH,
-    Blockly.BlockSvg.FIELD_HEIGHT
-  );
+Blockly.FieldColour.prototype.getSize = function() {
+  return new goog.math.Size(Blockly.BlockSvg.FIELD_WIDTH, Blockly.BlockSvg.FIELD_HEIGHT);
 };
 Blockly.FieldColour.COLOURS = goog.ui.ColorPicker.SIMPLE_GRID_COLORS;
+Blockly.FieldColour.TITLES = [];
 Blockly.FieldColour.COLUMNS = 7;
-Blockly.FieldColour.prototype.setColours = function (a) {
-  this.colours_ = a;
+Blockly.FieldColour.prototype.setColours = function(colours, opt_titles) {
+  this.colours_ = colours;
+  if (opt_titles !== undefined) {
+    this.titles_ = opt_titles;
+  }
   return this;
 };
-Blockly.FieldColour.prototype.setColumns = function (a) {
-  this.columns_ = a;
+Blockly.FieldColour.prototype.setColumns = function(columns) {
+  this.columns_ = columns;
   return this;
 };
-Blockly.FieldColour.prototype.showEditor_ = function () {
-  Blockly.WidgetDiv.show(
-    this,
-    this.sourceBlock_.RTL,
-    Blockly.FieldColour.widgetDispose_
-  );
-  var a = Blockly.utils.getViewportBBox(),
-    b = this.getScaledBBox_(),
-    c = this.createWidget_(),
-    d = goog.style.getSize(c.getElement());
-  Blockly.WidgetDiv.positionWithAnchor(a, b, d, this.sourceBlock_.RTL);
-  var e = this;
-  Blockly.FieldColour.changeEventKey_ = goog.events.listen(
-    c,
-    goog.ui.ColorPicker.EventType.CHANGE,
-    function (a) {
-      a = a.target.getSelectedColor() || "#000000";
-      Blockly.WidgetDiv.hide();
-      e.sourceBlock_ && (a = e.callValidator(a));
-      null !== a && e.setValue(a);
+Blockly.FieldColour.prototype.showEditor_ = function() {
+  this.colorPicker_ = this.dropdownCreate_(); // pxt-blockly: expose color picker
+  Blockly.DropDownDiv.getContentDiv().appendChild(this.colorPicker_);
+
+  Blockly.DropDownDiv.setColour(
+      this.DROPDOWN_BACKGROUND_COLOUR, this.DROPDOWN_BORDER_COLOUR);
+
+  Blockly.DropDownDiv.showPositionedByField(
+      this, this.dropdownDispose_.bind(this));
+  // TODO shakao check if needs hiding after selection
+};
+
+Blockly.FieldColour.prototype.onClick_ = function(e) {
+  var cell = e.target;
+  if (cell && !cell.label) {
+    // The target element is the 'div', back out to the 'td'.
+    cell = cell.parentNode;
+  }
+  var colour = cell && cell.label;
+  if (colour !== null) {
+    this.setValue(colour);
+    Blockly.DropDownDiv.hideIfOwner(this);
+  }
+};
+Blockly.FieldColour.prototype.dropdownCreate_ = function() {
+  var columns = this.columns_ || Blockly.FieldColour.COLUMNS;
+  var colours = this.colours_ || Blockly.FieldColour.COLOURS;
+  var titles = this.titles_ || Blockly.FieldColour.TITLES;
+  var selectedColour = this.getValue();
+  // Create the palette.
+  var table = document.createElement('table');
+  table.className = 'blocklyColourTable';
+  var row;
+  for (var i = 0; i < colours.length; i++) {
+    if (i % columns == 0) {
+      row = document.createElement('tr');
+      table.appendChild(row);
     }
-  );
+    var cell = document.createElement('td');
+    row.appendChild(cell);
+    var div = document.createElement('div');
+    cell.appendChild(div);
+    cell.label = colours[i];  // This becomes the value, if clicked.
+    cell.title = titles[i] || colours[i];
+    div.style.backgroundColor = colours[i];
+    if (colours[i] == selectedColour) {
+      div.className = 'blocklyColourSelected';
+    }
+  }
+
+  // Configure event handler on the table to listen for any event in a cell.
+  this.onUpWrapper_ = Blockly.bindEvent_(table, 'mouseup', this, this.onClick_);
+
+  return table;
 };
-Blockly.FieldColour.prototype.createWidget_ = function () {
-  var a = new goog.ui.ColorPicker();
-  a.setSize(this.columns_ || Blockly.FieldColour.COLUMNS);
-  a.setColors(this.colours_ || Blockly.FieldColour.COLOURS);
-  a.render(Blockly.WidgetDiv.DIV);
-  a.setSelectedColor(this.getValue());
-  return a;
-};
-Blockly.FieldColour.widgetDispose_ = function () {
-  Blockly.FieldColour.changeEventKey_ &&
-    goog.events.unlistenByKey(Blockly.FieldColour.changeEventKey_);
-  Blockly.Events.setGroup(!1);
+Blockly.FieldColour.prototype.dropdownDispose_ = function() {
+  Blockly.unbindEvent_(this.onUpWrapper_);
 };
 Blockly.Field.register("field_colour", Blockly.FieldColour);
 goog.events.MouseWheelHandler = function (a, b) {
@@ -36462,6 +36602,38 @@ Blockly.Css.CONTENT = [
   ".blocklyTreeSelected .blocklyTreeLabel {",
   "color: #fff;",
   "}",
+   '.blocklyColourTable {',
+    'outline: none;',
+    'border-radius: 11px;',
+    'margin-bottom: 20px;',
+    'border-collapse: collapse;',
+  '}',
+    '.blocklyColourTable > tr > td {',
+    'height: 22px;',
+    'width: 22px;',
+    'margin: 0;',
+    'padding: 2px;',
+    'border: 0;',
+    'text-align: center;',
+    'cursor: pointer;',
+  '}',
+    '.blocklyColourTable > tr > td > div {',
+    'position: relative;',
+    'height: 22px;',
+    'width: 22px;',
+    'border-radius: 4px;',
+    'border: 2px solid rgba(0,0,0,.1);',
+  '}',
+
+  '.blocklyColourTable > tr > td:hover > div {',
+    'border: 1px solid #FFF;',
+    'box-sizing: border-box;',
+  '}',
+    '.blocklyColourTable > tr > td > .blocklyColourSelected {',
+    'border: 1px solid #000;',
+    'box-sizing: border-box;',
+    'color: #fff;',
+  '}',
   ".blocklyDropDownDiv .goog-slider-horizontal {",
   "margin: 8px;",
   "height: 22px;",
