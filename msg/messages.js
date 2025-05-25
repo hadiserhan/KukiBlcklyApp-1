@@ -445,6 +445,14 @@ Blockly.Msg.TOOLTIP_LIGHT_SOUND_REST_QUARTER = "Play a quarter rest"
 Blockly.Msg.TOOLTIP_LIGHT_SOUND_REST_EIGHTH = "Play a eighth rest"
 
 
+
+//! KUKI MESSAGES
+//* Vertical
+Blockly.Msg.KUKI_WAIT_UNTIL_BUTTON_PRESSED = " Wait until the button is pressed";
+Blockly.Msg.KUKI_MOVE_WITH_SPEED = 'move %1 with';
+Blockly.Msg.PROCEDURES_CREATE_DO = "Create '%1'";
+Blockly.Msg.PROCEDURES_DEFNORETURN_PROCEDURE = "do something";
+
 /// tool tips for the wait until options
 Blockly.Msg.KUKI_TOOLTIP_WAIT_FOR = "Wait for "
 Blockly.Msg.KUKI_TOOLTIP_SECONDS = " Second(s) "

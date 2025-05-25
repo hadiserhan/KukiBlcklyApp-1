@@ -34034,15 +34034,18 @@ Blockly.FieldMatrix.ONES =  '1111111111111111' +
                             '1111111111111111' +
                             '1111111111111111';
 Blockly.FieldMatrix.ICONS_LIST =[
-                              "00000000000000001001010010100101100101001010010110100100101010011100010010110001101001001010100110010100101001011001011110100101",
+                              "01111111000010000001010001100011000000000111111100000001000000010111111100000000011111110000100000010100011000110000000001111111",
                               "0001110010010000010100101000000101001100000001010010100000011100100100",
-                              "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                              "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                              "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                              "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                              "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                              "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                          ];
+                              "00000000000000000000000000011000000110000001100000011000000110000001100011111111011111100011110000011000000000000000000000000000",
+                              "00000000000000000000000000011000001111000111111011111111000110000001100000011000000110000001100000011000000000000000000000000000",
+                              "00000000000000000000000000000000000010000000110000001110111111111111111100001110000011000000100000000000000000000000000000000000",
+                              "00000000000000000000000000000000000100000011000001110000111111111111111101110000001100000001000000000000000000000000000000000000",
+                              "00000000001111000100001001000010010000100011110000000000000000000000000000000000001111000100001001000010010000100011110000000000",
+                              "01111100100000101000000110011001010110010010000100010010000011000000110000010010001000010101100110011001100000011000001001111100",
+                              "00111100011001101110011111111111111111111111111101111110001111000011110001100110111001111111111111111111111111110111111000111100",
+                              "00111100011111101111111111111111111111111110011101100110001111000011110001111110111111111111111111111111111001110110011000111100",
+                              "00000000111111100100000100101101000101010000100100000110000000000000000000000110000010010001010100101101010000011111111100000000",
+                            ];
 Blockly.FieldMatrix.prototype.init = function () {
   if (!this.fieldGroup_) {
     this.fieldGroup_ = Blockly.utils.createSvgElement("g", {}, null);
@@ -34077,11 +34080,11 @@ Blockly.FieldMatrix.prototype.init = function () {
     this.ledThumbNodes_ = [];
     var nodeSize = Blockly.FieldMatrix.THUMBNAIL_NODE_SIZE * 0.5;
     var nodePad = Blockly.FieldMatrix.THUMBNAIL_NODE_PAD * 0.5;
-    for (var i = 0; i < 8; i++) {
-      for (var n = 0; n < 16; n++) {
+    for (var i = 0; i < 16; i++) {
+      for (var n = 0; n < 8; n++) {
         var attr = {
-          'x': ((nodeSize + nodePad) * n) + nodePad + 5,
-          'y': ((nodeSize + nodePad) * i) + nodePad + 5,
+          'x': ((nodeSize + nodePad) * i) + nodePad + 5,
+          'y': ((nodeSize + nodePad) * n) + nodePad + 5,
           'width': nodeSize, 'height': nodeSize,
           'rx': nodePad, 'ry': nodePad
         };
@@ -34178,18 +34181,18 @@ Blockly.FieldMatrix.prototype.showEditor_ = function () {
     a
   );
   this.ledButtons_ = [];
-  for (b = 0; 8 > b; b++)
-    for (var c = 0; 16 > c; c++) {
+  for (b = 0; 16 > b; b++)
+    for (var c = 0; 8 > c; c++) {
       var d = Blockly.utils.createSvgElement(
         "rect",
         {
           x:
-            Blockly.FieldMatrix.MATRIX_NODE_SIZE * c +
-            Blockly.FieldMatrix.MATRIX_NODE_PAD * (c + 1) +
-            "px",
-          y:
             Blockly.FieldMatrix.MATRIX_NODE_SIZE * b +
             Blockly.FieldMatrix.MATRIX_NODE_PAD * (b + 1) +
+            "px",
+          y:
+            Blockly.FieldMatrix.MATRIX_NODE_SIZE * c +
+            Blockly.FieldMatrix.MATRIX_NODE_PAD * (c + 1) +
             "px",
           width: Blockly.FieldMatrix.MATRIX_NODE_SIZE,
           height: Blockly.FieldMatrix.MATRIX_NODE_SIZE,
@@ -34319,13 +34322,13 @@ Blockly.FieldMatrix.prototype.createButton2 = function(icon) {
       'height': (nodeSize + nodePad) * (8 + nodePad) + 'px',
       'width': (nodeSize + nodePad) * (16 + nodePad) + 'px'
   });
-  for (var i = 0; i < 8; i++) {
-      for (var n = 0; n < 16; n++) {
-          var index = i * 16 + n;
+  for (var i = 0; i < 16; i++) {
+      for (var n = 0; n < 8; n++) {
+          var index = i * 8 + n;
           var isOn = index < icon.length && icon.charAt(index) === '1';
           Blockly.utils.createSvgElement('rect', {
-              'x': (nodeSize + nodePad) * (n + nodePad),
-              'y': (nodeSize + nodePad) * (i + nodePad),
+              'x': (nodeSize + nodePad) * (i + nodePad),
+              'y': (nodeSize + nodePad) * (n + nodePad),
               'width': nodeSize,
               'height': nodeSize,
               'rx': nodePad,
@@ -34428,9 +34431,9 @@ Blockly.FieldMatrix.prototype.checkForLED_ = function (event) {
 
     var col = Math.trunc((x - halfPad) / (nodeSize + pad));
     var row = Math.trunc((y - halfPad) / (nodeSize + pad));
-    var cols = 16; // Number of columns in the matrix
+    var rows = 8; // Number of columns in the matrix
 
-    return col + row * cols;
+    return row + col * rows;
   // var b = this.matrixStage_.getBoundingClientRect(),
   //   c = Blockly.FieldMatrix.MATRIX_NODE_SIZE,
   //   d = Blockly.FieldMatrix.MATRIX_NODE_PAD,

@@ -9021,7 +9021,14 @@ Blockly.Bubble.prototype.height_ = 0;
 Blockly.Bubble.prototype.autoLayout_ = !0;
 Blockly.Bubble.prototype.createDom_ = function (a, b) {
   this.bubbleGroup_ = Blockly.utils.createSvgElement("g", {}, null);
-  var c = { filter: "url(#" + this.workspace_.options.embossFilterId + ")" };
+   var c =
+      {'filter': 'url(#' + this.workspace_.options.embossFilterId + ')'};
+  if (Blockly.utils.userAgent.JAVA_FX || !this.useArrow_) {
+    // Multiple reports that JavaFX can't handle filters.
+    // https://github.com/google/blockly/issues/99
+    filter = {};
+  }
+  // var c = { filter: "url(#" + this.workspace_.options.embossFilterId + ")" };
   -1 != goog.userAgent.getUserAgentString().indexOf("JavaFX") && (c = {});
   c = Blockly.utils.createSvgElement("g", c, this.bubbleGroup_);
   this.bubbleArrow_ = Blockly.utils.createSvgElement("path", {}, c);
@@ -16666,7 +16673,11 @@ Blockly.WorkspaceSvg = function (a, b, c) {
     Blockly.PROCEDURE_CATEGORY_NAME,
     Blockly.Procedures.flyoutCategory
   );
+
+
 };
+
+
 goog.inherits(Blockly.WorkspaceSvg, Blockly.Workspace);
 Blockly.WorkspaceSvg.prototype.resizeHandlerWrapper_ = null;
 Blockly.WorkspaceSvg.prototype.rendered = !0;
@@ -17995,6 +18006,7 @@ Blockly.Field.cacheWidths_ = null;
 Blockly.Field.cacheReference_ = 0;
 Blockly.Field.prototype.name = void 0;
 Blockly.Field.prototype.className_ = "blocklyText";
+Blockly.Field.prototype.value_ = null;
 Blockly.Field.prototype.text_ = "";
 Blockly.Field.prototype.sourceBlock_ = null;
 Blockly.Field.prototype.visible_ = !0;
@@ -18232,7 +18244,7 @@ Blockly.Field.prototype.updateTextNode_ = function () {
   }
 };
 Blockly.Field.prototype.getValue = function () {
-  return this.getText();
+  return this.value_;
 };
 Blockly.Field.prototype.doClassValidation_ = function(newValue) {
   // For backwards compatibility.
@@ -18314,13 +18326,38 @@ Blockly.Field.prototype.onMouseDown_ = function (a) {
       "mouse" !== Blockly.Touch.getTouchIdentifierFromEvent(event)));
 };
 Blockly.Field.prototype.setTooltip = function (a) {};
-Blockly.Field.prototype.getClickTarget_ = function () {
-  for (var a = 0, b = 0, c; (c = this.sourceBlock_.inputList[b]); b++)
-    a += c.fieldRow.length;
-  return 1 >= a && this.sourceBlock_.outputConnection
-    ? this.sourceBlock_.getSvgRoot()
-    : this.getSvgRoot();
+Blockly.Field.prototype.getClickTarget_ = function() {
+  if (this.clickTarget_) return this.clickTarget_;
+
+  var nFields = 0;
+  var nConnections = 0;
+
+  // Count the number of fields, excluding text fields
+  for (var i = 0, input; input = this.sourceBlock_.inputList[i]; i++) {
+    for (var j = 0, field; field = input.fieldRow[j]; j++) {
+      if (!(field instanceof Blockly.FieldLabel)) {
+        nFields ++;
+      }
+    }
+    if (input.connection) nConnections++;
+  }
+
+  if (nFields <= 1 && this.sourceBlock_.outputConnection && !nConnections) {
+    this.clickTarget_ = this.sourceBlock_.getSvgRoot();
+  } else {
+    this.clickTarget_ = this.getSvgRoot();
+  }
+  return this.clickTarget_;
 };
+
+Blockly.Field.prototype.getTotalFields_ = function() {
+  var nFields = 0;
+  for (var i = 0, input; input = this.sourceBlock_.inputList[i]; i++) {
+    nFields += input.fieldRow.length;
+  }
+  return nFields;
+};
+
 Blockly.Field.prototype.getAbsoluteXY_ = function () {
   return goog.style.getPageOffset(this.getClickTarget_());
 };
@@ -25134,51 +25171,85 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function (a) {
     a.paddingEnd += Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING[b][d];
   }
 };
-Blockly.BlockSvg.prototype.renderDraw_ = function (a, b) {
-  this.squareTopLeftCorner_ = this.startHat_ = !1;
-  this.outputConnection ||
+Blockly.BlockSvg.prototype.renderDraw_ = function(iconWidth, inputRows) {
+  this.startHat_ = false;
+   this.squareTopLeftCorner_ = false;
+   this.outputConnection ||
     this.previousConnection ||
     ((this.startHat_ = this.squareTopLeftCorner_ = !0),
-    (b.rightEdge = Math.max(b.rightEdge, 100)));
+    (inputRows.rightEdge = Math.max(inputRows.rightEdge, 100)));
+    
+  if(this.type.includes("procedure")){
+    this.startHat_ = false;
+  }
   this.edgeShapeWidth_ = 0;
   this.edgeShape_ = null;
   if (this.outputConnection) {
-    var c = this.getOutputShape();
-    if (
-      c === Blockly.OUTPUT_SHAPE_HEXAGONAL ||
-      c === Blockly.OUTPUT_SHAPE_ROUND
-    )
-      (this.edgeShapeWidth_ = b.bottomEdge / 2),
-        (this.edgeShape_ = c),
-        (this.squareTopLeftCorner_ = !0);
+    var shape = this.getOutputShape();
+    if (shape === Blockly.OUTPUT_SHAPE_HEXAGONAL || shape === Blockly.OUTPUT_SHAPE_ROUND) {
+      this.edgeShapeWidth_ = inputRows.bottomEdge / 2;
+      this.edgeShape_ = shape;
+      this.squareTopLeftCorner_ = true;
+    }
   }
-  c = [];
-  this.renderDrawTop_(c, b.rightEdge);
-  a = this.renderDrawRight_(c, b, a);
-  this.renderDrawBottom_(c, a);
-  this.renderDrawLeft_(c);
-  a = c.join(" ");
-  this.svgPath_.setAttribute("d", a);
+  var pathObject = [];
+
+  this.renderDrawTop_(pathObject, inputRows.rightEdge);
+  var cursorY = this.renderDrawRight_(pathObject, inputRows, iconWidth);
+  this.renderDrawBottom_(pathObject, cursorY);
+  this.renderDrawLeft_(pathObject);
+
+ cursorY = pathObject.join(" ");
+  this.svgPath_.setAttribute("d", cursorY);
   this.RTL && this.svgPath_.setAttribute("transform", "scale(-1 1)");
 };
-Blockly.BlockSvg.prototype.renderClassify_ = function () {
-  var a = [];
-  if (this.outputConnection)
-    this.isShadow_ ? a.push("argument") : a.push("reporter"),
-      this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL
-        ? a.push("boolean")
-        : this.edgeShape_ === Blockly.OUTPUT_SHAPE_ROUND && a.push("round");
-  else {
-    for (var b = this.inputList, c = 0, d = 0, e; (e = b[d]); d++)
-      e.connection && e.connection.type === Blockly.NEXT_STATEMENT && c++;
-    c && (a.push("c-block"), a.push("c-" + c));
-    this.startHat_ ? a.push("hat") : c || a.push("stack");
-    this.nextConnection || a.push("end");
+
+Blockly.BlockSvg.prototype.renderClassify_ = function() {
+  var shapes = [];
+
+  if (this.outputConnection) {
+    if (this.isShadow_) {
+      shapes.push('argument');
+    } else {
+      shapes.push('reporter');
+    }
+    if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL) {
+      shapes.push('boolean');
+    } else if (this.edgeShape_ === Blockly.OUTPUT_SHAPE_ROUND) {
+      shapes.push('round');
+    }
+  } else {
+    // count the number of statement inputs
+    var inputList = this.inputList;
+    var statementCount = 0;
+    for (var i = 0, input; input = inputList[i]; i++) {
+      if (input.connection && input.connection.type === Blockly.NEXT_STATEMENT) {
+        statementCount++;
+      }
+    }
+
+    if (statementCount) {
+      shapes.push('c-block');
+      shapes.push('c-' + statementCount);
+    }
+    if (this.startHat_) {
+      shapes.push('hat'); // c-block+hats are possible (e.x. reprter procedures)
+    } else if (!statementCount) {
+      shapes.push('stack'); //only call it "stack" if it's not a c-block
+    }
+    if (!this.nextConnection) {
+      shapes.push('end');
+    }
   }
-  this.svgGroup_.setAttribute("data-shapes", a.join(" "));
-  this.getCategory() &&
-    this.svgGroup_.setAttribute("data-category", this.getCategory());
+
+  this.svgGroup_.setAttribute('data-shapes', shapes.join(' '));
+
+  /*
+  if (this.getCategory()) {
+    this.svgGroup_.setAttribute('data-category', this.getCategory());
+  }*/
 };
+
 Blockly.BlockSvg.prototype.renderDrawTop_ = function (a, b) {
   this.type == Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE
     ? (a.push("m 0, 0"), a.push(Blockly.BlockSvg.TOP_LEFT_CORNER_DEFINE_HAT))
@@ -25503,6 +25574,59 @@ Blockly.FieldTextInput.prototype.setValue = function (a) {
     Blockly.Field.prototype.setValue.call(this, a);
   }
 };
+Blockly.FieldTextInput.prototype.dispose = function() {
+  if (this.mouseOverWrapper_) {
+    Blockly.unbindEvent_(this.mouseOverWrapper_);
+    this.mouseOverWrapper_ = null;
+  }
+  if (this.mouseOutWrapper_) {
+    Blockly.unbindEvent_(this.mouseOutWrapper_);
+    this.mouseOutWrapper_ = null;
+  }
+  Blockly.WidgetDiv.hideIfOwner(this);
+  Blockly.FieldTextInput.superClass_.dispose.call(this);
+};
+Blockly.FieldTextInput.prototype.doClassValidation_ = function(newValue) {
+  if (newValue === null || newValue === undefined) {
+    return null;
+  }
+  return String(newValue);
+};
+Blockly.FieldTextInput.prototype.doValueInvalid_ = function(_invalidValue) {
+  if (this.isBeingEdited_) {
+    this.isTextValid_ = false;
+    var oldValue = this.value_;
+    // Revert value when the text becomes invalid.
+    this.value_ = this.htmlInput_.untypedDefaultValue_;
+    if (this.sourceBlock_ && Blockly.Events.isEnabled()) {
+      Blockly.Events.fire(new Blockly.Events.BlockChange(
+          this.sourceBlock_, 'field', this.name, oldValue, this.value_));
+    }
+  }
+};
+Blockly.FieldTextInput.prototype.doValueUpdate_ = function(newValue) {
+  this.isTextValid_ = true;
+  this.value_ = newValue;
+  if (!this.isBeingEdited_) {
+    // This should only occur if setValue is triggered programmatically.
+    this.text_ = String(newValue);
+    this.isDirty_ = true;
+  }
+};
+Blockly.FieldTextInput.prototype.render_ = function() {
+  Blockly.FieldTextInput.superClass_.render_.call(this);
+  // This logic is done in render_ rather than doValueInvalid_ or
+  // doValueUpdate_ so that the code is more centralized.
+  if (this.isBeingEdited_) {
+    this.resizeEditor_();
+    if (!this.isTextValid_) {
+      Blockly.utils.dom.addClass(this.htmlInput_, 'blocklyInvalidInput');
+    } else {
+      Blockly.utils.removeClass(this.htmlInput_, 'blocklyInvalidInput');
+    }
+  }
+};
+
 Blockly.FieldTextInput.prototype.setText = function (a) {
   null !== a &&
     ((a = String(a)),
@@ -25523,75 +25647,106 @@ Blockly.FieldTextInput.prototype.setText = function (a) {
 Blockly.FieldTextInput.prototype.setSpellcheck = function (a) {
   this.spellcheck_ = a;
 };
+Blockly.FieldTextInput.prototype.setAutoCapitalize = function(autoCapitalize) {
+  this.autoCapitalize_ = autoCapitalize;
+};
+
 Blockly.FieldTextInput.prototype.setRestrictor = function (a) {
   this.restrictor_ = a;
 };
-Blockly.FieldTextInput.prototype.showEditor_ = function (a, b, c, d) {
+Blockly.FieldTextInput.prototype.showEditor_ = function(e, opt_quietInput, opt_readOnly, opt_withArrow, opt_arrowCallback) {
   this.workspace_ = this.sourceBlock_.workspace;
-  a = a || !1;
-  var e = b || !1;
-  Blockly.WidgetDiv.show(
-    this,
-    this.sourceBlock_.RTL,
-    this.widgetDispose_(),
-    this.widgetDisposeAnimationFinished_(),
-    Blockly.FieldTextInput.ANIMATION_TIME
-  );
-  b = Blockly.WidgetDiv.DIV;
-  b.className += " fieldTextInput";
-  var f = goog.dom.createDom("INPUT", "blocklyHtmlInput");
-  f.setAttribute("spellcheck", this.spellcheck_);
-  e && f.setAttribute("readonly", "true");
-  Blockly.FieldTextInput.htmlInput_ = f;
-  b.appendChild(f);
-  c &&
-    (this.sourceBlock_.RTL
-      ? (f.style.paddingLeft =
-          this.arrowSize_ + Blockly.BlockSvg.DROPDOWN_ARROW_PADDING + "px")
-      : (f.style.paddingRight =
-          this.arrowSize_ + Blockly.BlockSvg.DROPDOWN_ARROW_PADDING + "px"),
-    (c = goog.dom.createDom("IMG", "blocklyTextDropDownArrow")),
-    c.setAttribute(
-      "src",
-      Blockly.mainWorkspace.options.pathToMedia + "dropdown-arrow-dark.svg"
-    ),
-    (c.style.width = this.arrowSize_ + "px"),
-    (c.style.height = this.arrowSize_ + "px"),
-    (c.style.top = this.arrowY_ + "px"),
-    (c.style.cursor = "pointer"),
-    this.sourceBlock_.RTL ? (c.style.left = "11px") : (c.style.right = "11px"),
-    d &&
-      (f.dropDownArrowMouseWrapper_ = Blockly.bindEvent_(
-        c,
-        "mousedown",
-        this,
-        d
-      )),
-    b.appendChild(c));
-  f.value = f.defaultValue = this.text_;
-  f.oldValue_ = null;
-  this.validate_();
-  this.resizeEditor_();
-  a || (f.focus(), f.select(), f.setSelectionRange(0, 99999));
-  this.bindEvents_(f, a || e);
-  d = "box-shadow " + Blockly.FieldTextInput.ANIMATION_TIME + "s";
-  Blockly.BlockSvg.FIELD_TEXTINPUT_ANIMATE_POSITIONING &&
-    (b.style.transition +=
-      ",padding " +
-      Blockly.FieldTextInput.ANIMATION_TIME +
-      "s,width " +
-      Blockly.FieldTextInput.ANIMATION_TIME +
-      "s,height " +
-      Blockly.FieldTextInput.ANIMATION_TIME +
-      "s,margin-left " +
-      Blockly.FieldTextInput.ANIMATION_TIME +
-      "s");
-  b.style.transition = d;
-  f.style.transition =
-    "font-size " + Blockly.FieldTextInput.ANIMATION_TIME + "s";
-  f.style.fontSize = Blockly.BlockSvg.FIELD_TEXTINPUT_FONTSIZE_FINAL + "pt";
-  b.style.boxShadow = "0px 0px 0px 4px " + Blockly.Colours.fieldShadow;
+  var quietInput = opt_quietInput || false;
+  var readOnly = opt_readOnly || false;
+  if (!quietInput && (goog.userAgent.MOBILE ||
+                      goog.userAgent.ANDROID||
+                      goog.userAgent.IPAD)) {
+    this.showPromptEditor_();
+  } else {
+    this.showInlineEditor_(quietInput, readOnly, opt_withArrow, opt_arrowCallback);
+  }
 };
+
+Blockly.FieldTextInput.prototype.showPromptEditor_ = function() {
+  var fieldText = this;
+  Blockly.prompt(Blockly.Msg['CHANGE_VALUE_TITLE'], this.text_,
+      function(newValue) {
+        fieldText.setValue(newValue);
+      });
+};
+Blockly.FieldTextInput.prototype.showInlineEditor_ = function(quietInput, readOnly, withArrow, arrowCallback) {
+  this.isBeingEdited_ = true;
+  Blockly.WidgetDiv.show(
+      this, this.sourceBlock_.RTL, this.widgetDispose_.bind(this));
+  this.htmlInput_ = this.widgetCreate_(readOnly, withArrow, arrowCallback);
+
+  // pxtblockly: execute the arrow callback when the editor is opened as well
+  if (arrowCallback) {
+    arrowCallback.call(this);
+  }
+
+  if (!quietInput) {
+    this.focus();
+    // iOS only
+    this.htmlInput_.setSelectionRange(0, 99999);
+  }
+};
+Blockly.FieldTextInput.prototype.widgetCreate_ = function(readOnly, withArrow, arrowCallback) {
+  var div = Blockly.WidgetDiv.DIV;
+  // Apply text-input-specific fixed CSS
+  Blockly.utils.addClass(div, 'fieldTextInput');
+  var htmlInput = document.createElement('input');
+  htmlInput.className = 'blocklyHtmlInput';
+  htmlInput.setAttribute('spellcheck', this.spellcheck_);
+  if (readOnly) {
+    htmlInput.setAttribute('readonly', 'true');
+  }
+  // pxt-blockly: disable auto-capitalization if configured to do so.
+  if (!this.autoCapitalize_) {
+    htmlInput.setAttribute('autocapitalize', 'none');
+  }
+  // The animated properties themselves
+  htmlInput.style.fontSize = Blockly.BlockSvg.FIELD_TEXTINPUT_FONTSIZE_FINAL + 'pt';
+  div.appendChild(htmlInput);
+
+  if (withArrow) {
+    // Move text in input to account for displayed drop-down arrow.
+    if (this.sourceBlock_.RTL) {
+      htmlInput.style.paddingLeft = (this.arrowSize_ + Blockly.BlockSvg.DROPDOWN_ARROW_PADDING) + 'px';
+    } else {
+      htmlInput.style.paddingRight = (this.arrowSize_ + Blockly.BlockSvg.DROPDOWN_ARROW_PADDING) + 'px';
+    }
+    // Create the arrow.
+    var dropDownArrow = document.createElement('img');
+    dropDownArrow.className = 'blocklyTextDropDownArrow';
+    dropDownArrow.style.width = this.arrowSize_ + 'px';
+    dropDownArrow.style.height = this.arrowSize_ + 'px';
+    dropDownArrow.style.top = this.arrowY_ + 'px';
+    dropDownArrow.style.cursor = 'pointer';
+    // Magic number for positioning the drop-down arrow on top of the text editor.
+    var dropdownArrowMagic = '11px';
+    if (this.sourceBlock_.RTL) {
+      dropDownArrow.style.left = dropdownArrowMagic;
+    } else {
+      dropDownArrow.style.right = dropdownArrowMagic;
+    }
+    if (arrowCallback) {
+      htmlInput.dropDownArrowMouseWrapper_ = Blockly.bindEventWithChecks_(dropDownArrow,
+          'mousedown', this, arrowCallback);
+    }
+    div.appendChild(dropDownArrow);
+  }
+
+  htmlInput.value = htmlInput.defaultValue = this.value_;
+  htmlInput.untypedDefaultValue_ = this.value_;
+  htmlInput.oldValue_ = null;
+  this.resizeEditor_();
+
+  this.bindInputEvents_(htmlInput);
+
+  return htmlInput;
+};
+
 Blockly.FieldTextInput.prototype.bindEvents_ = function (a, b) {
   a.onKeyDownWrapper_ = Blockly.bindEventWithChecks_(
     a,
@@ -25636,141 +25791,236 @@ Blockly.FieldTextInput.prototype.unbindEvents_ = function (a) {
   a.onDocumentKeyDownWrapper_ &&
     Blockly.unbindEvent_(a.onDocumentKeyDownWrapper_);
 };
-Blockly.FieldTextInput.prototype.onHtmlInputKeyDown_ = function (a) {
-  var b = Blockly.FieldTextInput.htmlInput_;
-  13 == a.keyCode
-    ? (Blockly.WidgetDiv.hide(), Blockly.DropDownDiv.hideWithoutAnimation())
-    : 27 == a.keyCode
-    ? ((b.value = b.defaultValue),
-      Blockly.WidgetDiv.hide(),
-      Blockly.DropDownDiv.hideWithoutAnimation())
-    : 9 == a.keyCode &&
-      (Blockly.WidgetDiv.hide(),
-      Blockly.DropDownDiv.hideWithoutAnimation(),
-      this.sourceBlock_.tab(this, !a.shiftKey),
-      a.preventDefault());
+Blockly.FieldTextInput.prototype.onHtmlInputKeyDown_ = function(e) {
+  var tabKey = 9, enterKey = 13, escKey = 27;
+  if (e.keyCode == enterKey) {
+    Blockly.WidgetDiv.hide(true);
+    Blockly.DropDownDiv.hideWithoutAnimation();
+  } else if (e.keyCode == escKey) {
+    this.htmlInput_.value = this.htmlInput_.defaultValue;
+    Blockly.WidgetDiv.hide();
+    Blockly.DropDownDiv.hideWithoutAnimation(); // TODO shakao necessary?
+  } else if (e.keyCode == tabKey) {
+    Blockly.WidgetDiv.hide(true);
+    Blockly.DropDownDiv.hideWithoutAnimation();
+    this.sourceBlock_.tab(this, !e.shiftKey);
+    e.preventDefault();
+  }
 };
-Blockly.FieldTextInput.prototype.onDocumentKeyDown_ = function (a) {
-  var b = Blockly.FieldTextInput.htmlInput_,
-    c = "INPUT" === a.target.tagName || "TEXTAREA" === a.target.tagName;
-  (a.target !== b && c) ||
-    (b.removeAttribute("readonly"),
-    (b.value = ""),
-    b.focus(),
-    Blockly.unbindEvent_(b.onDocumentKeyDownWrapper_),
-    (b.onDocumentKeyDownWrapper_ = null));
-};
+
 Blockly.FieldTextInput.GECKO_KEYCODE_WHITELIST = [97, 99, 118, 120];
-Blockly.FieldTextInput.prototype.onHtmlInputChange_ = function (a) {
-  if ("keypress" === a.type && this.restrictor_) {
-    var b = !1;
+Blockly.FieldTextInput.prototype.onHtmlInputChange_ = function(e) {
+  // Check if the key matches the restrictor.
+  if (e.type === 'keypress' && this.restrictor_) {
+    var keyCode;
+    var isWhitelisted = false;
     if (goog.userAgent.GECKO) {
-      var c = a.charCode;
-      if (32 > c || 127 == c) b = !0;
-      else if (a.metaKey || a.ctrlKey)
-        b = -1 < Blockly.FieldTextInput.GECKO_KEYCODE_WHITELIST.indexOf(c);
-    } else c = a.keyCode;
-    c = String.fromCharCode(c);
-    if (!b && !this.restrictor_.test(c) && a.preventDefault) {
-      a.preventDefault();
+      // e.keyCode is not available in Gecko.
+      keyCode = e.charCode;
+      // Gecko reports control characters (e.g., left, right, copy, paste)
+      // in the key event - whitelist these from being restricted.
+      // < 32 and 127 (delete) are control characters.
+      // See: http://www.theasciicode.com.ar/ascii-control-characters/delete-ascii-code-127.html
+      if (keyCode < 32 || keyCode == 127) {
+        isWhitelisted = true;
+      } else if (e.metaKey || e.ctrlKey) {
+        // For combos (ctrl-v, ctrl-c, etc.), Gecko reports the ASCII letter
+        // and the metaKey/ctrlKey flags.
+        isWhitelisted = Blockly.FieldTextInput.GECKO_KEYCODE_WHITELIST.indexOf(keyCode) > -1;
+      }
+    } else {
+      keyCode = e.keyCode;
+    }
+    var char = String.fromCharCode(keyCode);
+    if (!isWhitelisted && !this.restrictor_.test(char) && e.preventDefault) {
+      // Failed to pass restrictor.
+      e.preventDefault();
       return;
     }
   }
-  a = Blockly.FieldTextInput.htmlInput_;
-  b = a.value;
-  b !== a.oldValue_
-    ? ((a.oldValue_ = b), this.setText(b), this.validate_())
-    : goog.userAgent.WEBKIT && this.sourceBlock_.render();
+
+  // Update source block.
+  var text = this.htmlInput_.value;
+  if (text !== this.htmlInput_.oldValue_) {
+    this.htmlInput_.oldValue_ = text;
+
+    // TODO(#2169): Once issue is fixed the setGroup functionality could be
+    //              moved up to the Field setValue method. This would create a
+    //              broader fix for all field types.
+    Blockly.Events.setGroup(true);
+    this.setValue(text);
+  } else if (goog.userAgent.WEBKIT) {
+    // Cursor key.  Render the source block to show the caret moving.
+    // Chrome only (version 26, OS X).
+    this.sourceBlock_.render();
+  }
+  // Always render the input text.
+  this.text_ = this.htmlInput_.value;
+  this.forceRerender();
+  Blockly.Events.setGroup(false);
   this.resizeEditor_();
 };
-Blockly.FieldTextInput.prototype.validate_ = function () {
-  var a = !0;
-  goog.asserts.assertObject(Blockly.FieldTextInput.htmlInput_);
-  var b = Blockly.FieldTextInput.htmlInput_;
-  this.sourceBlock_ && (a = this.callValidator(b.value));
-  null === a
-    ? Blockly.utils.addClass(b, "blocklyInvalidInput")
-    : Blockly.utils.removeClass(b, "blocklyInvalidInput");
-};
-Blockly.FieldTextInput.prototype.resizeEditor_ = function () {
-  var a = this.sourceBlock_.workspace.scale,
-    b = Blockly.WidgetDiv.DIV;
-  var c = this.sourceBlock_.isShadow()
-    ? this.sourceBlock_.getHeightWidth().width * a
-    : this.size_.width * a;
+Blockly.FieldTextInput.prototype.focus = function() {
+  this.htmlInput_.focus();
+  this.htmlInput_.select();
+}
+
+Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
+  var scale = this.sourceBlock_.workspace.scale;
+  var div = Blockly.WidgetDiv.DIV;
+
+  var initialWidth;
+  if (this.sourceBlock_.isShadow() || this.getTotalFields_() == 1) {
+    initialWidth = this.sourceBlock_.getHeightWidth().width * scale;
+  } else {
+    initialWidth = this.size_.width * scale;
+  }
+
+  var width;
   if (Blockly.BlockSvg.FIELD_TEXTINPUT_EXPAND_PAST_TRUNCATION) {
-    var d = Blockly.scratchBlocksUtils.measureText(
-      Blockly.FieldTextInput.htmlInput_.style.fontSize,
-      Blockly.FieldTextInput.htmlInput_.style.fontFamily,
-      Blockly.FieldTextInput.htmlInput_.style.fontWeight,
-      Blockly.FieldTextInput.htmlInput_.value
+    // Resize the box based on the measured width of the text, pre-truncation
+    var textWidth = Blockly.pxtBlocklyUtils.measureText(
+        Blockly.FieldTextInput.htmlInput_.style.fontSize,
+        Blockly.FieldTextInput.htmlInput_.style.fontFamily,
+        Blockly.FieldTextInput.htmlInput_.style.fontWeight,
+        Blockly.FieldTextInput.htmlInput_.value
     );
-    d += Blockly.FieldTextInput.TEXT_MEASURE_PADDING_MAGIC;
-    d *= a;
-  } else d = c;
-  d = Math.max(d, Blockly.BlockSvg.FIELD_WIDTH_MIN_EDIT * a);
-  d = Math.min(d, Blockly.BlockSvg.FIELD_WIDTH_MAX_EDIT * a);
-  b.style.width = d / a + 1 + "px";
-  b.style.height = Blockly.BlockSvg.FIELD_HEIGHT + 1 + "px";
-  b.style.transform = "scale(" + a + ")";
-  b.style.marginLeft = -0.5 * (d - c) + "px";
-  c = this.getBorderRadius() + 0.5;
-  b.style.borderRadius = c + "px";
-  Blockly.FieldTextInput.htmlInput_.style.borderRadius = c + "px";
-  c = this.sourceBlock_.getColourTertiary();
-  b.style.borderColor = c;
-  c = this.getAbsoluteXY_();
-  c.x -= a / 2;
-  c.y -= a / 2;
-  this.sourceBlock_.RTL &&
-    ((c.x += d), (c.x -= b.offsetWidth * a), (c.x += 1 * a));
-  c.y += 1 * a;
-  goog.userAgent.GECKO &&
-    Blockly.WidgetDiv.DIV.style.top &&
-    ((c.x += 2 * a), (c.y += 1 * a));
-  goog.userAgent.WEBKIT && (c.y -= 1 * a);
-  b.style.left = c.x + "px";
-  b.style.top = c.y + "px";
+    // Size drawn in the canvas needs padding and scaling
+    textWidth += Blockly.FieldTextInput.TEXT_MEASURE_PADDING_MAGIC;
+    textWidth *= scale;
+    width = textWidth;
+  } else {
+    // Set width to (truncated) block size.
+    width = initialWidth;
+  }
+  // The width must be at least FIELD_WIDTH and at most FIELD_WIDTH_MAX_EDIT
+  width = Math.max(width, Blockly.BlockSvg.FIELD_WIDTH_MIN_EDIT * scale);
+  width = Math.min(width, Blockly.BlockSvg.FIELD_WIDTH_MAX_EDIT * scale);
+
+  var inputHeight = this.getTotalFields_() == 1 ?
+    this.sourceBlock_.getHeightWidth().height : Blockly.BlockSvg.FIELD_HEIGHT_MAX_EDIT;
+
+  // Add 1px to width and height to account for border (pre-scale)
+  div.style.width = (width / scale + 1) + 'px';
+  div.style.height = (inputHeight + 1) + 'px';
+  div.style.transform = 'scale(' + scale + ')';
+
+  // Use margin-left to animate repositioning of the box (value is unscaled).
+  // This is the difference between the default position and the positioning
+  // after growing the box.
+  div.style.marginLeft = -0.5 * (width - initialWidth) + 'px';
+
+  // Add 0.5px to account for slight difference between SVG and CSS border
+  var borderRadius = this.getBorderRadius() + 0.5;
+  div.style.borderRadius = borderRadius + 'px';
+  //Blockly.FieldTextInput.htmlInput_.style.borderRadius = borderRadius + 'px';
+  // Pull stroke colour from the existing shadow block
+  var strokeColour = this.sourceBlock_.getColourTertiary();
+  div.style.borderColor = strokeColour;
+
+  var xy = this.getAbsoluteXY_();
+  // Account for border width, post-scale
+  xy.x -= scale / 2;
+  xy.y -= scale / 2;
+  // In RTL mode block fields and LTR input fields the left edge moves,
+  // whereas the right edge is fixed.  Reposition the editor.
+  if (this.sourceBlock_.RTL) {
+    xy.x += width;
+    xy.x -= div.offsetWidth * scale;
+    xy.x += 1 * scale;
+  }
+  // Shift by a few pixels to line up exactly.
+  xy.y += 1 * scale;
+  if (goog.userAgent.GECKO && Blockly.WidgetDiv.DIV.style.top) {
+    // Firefox mis-reports the location of the border by a pixel
+    // once the WidgetDiv is moved into position.
+    xy.x += 2 * scale;
+    xy.y += 1 * scale;
+  }
+  if (goog.userAgent.WEBKIT) {
+    xy.y -= 1 * scale;
+  }
+  // Finally, set the actual style
+  div.style.left = xy.x + 'px';
+  div.style.top = xy.y + 'px';
 };
+
 Blockly.FieldTextInput.prototype.getBorderRadius = function () {
   return this.sourceBlock_.getOutputShape() == Blockly.OUTPUT_SHAPE_ROUND
     ? Blockly.BlockSvg.NUMBER_FIELD_CORNER_RADIUS
     : Blockly.BlockSvg.TEXT_FIELD_CORNER_RADIUS;
 };
-Blockly.FieldTextInput.prototype.widgetDispose_ = function () {
-  var a = this;
-  return function () {
-    var b = Blockly.WidgetDiv.DIV,
-      c = Blockly.FieldTextInput.htmlInput_;
-    a.maybeSaveEdit_();
-    a.unbindEvents_(c);
-    c.dropDownArrowMouseWrapper_ &&
-      Blockly.unbindEvent_(c.dropDownArrowMouseWrapper_);
-    Blockly.Events.setGroup(!1);
-    c.style.fontSize = Blockly.BlockSvg.FIELD_TEXTINPUT_FONTSIZE_INITIAL + "pt";
-    b.style.boxShadow = "";
-    a.sourceBlock_ &&
-      (a.sourceBlock_.isShadow()
-        ? ((c = a.sourceBlock_.getHeightWidth()),
-          (b.style.width = c.width + 1 + "px"),
-          (b.style.height = c.height + 1 + "px"))
-        : ((b.style.width = a.size_.width + 1 + "px"),
-          (b.style.height = Blockly.BlockSvg.FIELD_HEIGHT + 1 + "px")));
-    b.style.marginLeft = 0;
-  };
+Blockly.FieldTextInput.prototype.widgetDispose_ = function() {
+  // Finalize value.
+  this.isBeingEdited_ = false;
+  // No need to call setValue because if the widget is being closed the
+  // latest input text has already been validated.
+  if (this.value_ !== this.text_) {
+    // At the end of an edit the text should be the same as the value. It
+    // may not be if the input text is different than the validated text.
+    // We should fix that.
+    this.text_ = String(this.value_);
+    this.isTextValid_ = true;
+    this.forceRerender();
+  }
+
+  // Otherwise don't rerender.
+
+  // Call onFinishEditing
+  // TODO: Get rid of this or make it less of a hack.
+  if (this.onFinishEditing_) {
+    this.onFinishEditing_(this.value_);
+  }
+
+  // Remove htmlInput events.
+  this.unbindInputEvents_();
+  if (this.htmlInput_.dropDownArrowMouseWrapper_) {
+    Blockly.unbindEvent_(this.htmlInput_.dropDownArrowMouseWrapper_);
+  }
+  Blockly.Events.setGroup(false);
+
+  // Animation of disposal
+  this.htmlInput_.style.fontSize = Blockly.BlockSvg.FIELD_TEXTINPUT_FONTSIZE_INITIAL + 'pt';
+
+  // Clean up widget div styling
+  var div = Blockly.WidgetDiv.DIV;
+  Blockly.utils.removeClass(div, 'fieldTextInput');
+  div.style = {};
+}
+Blockly.FieldTextInput.prototype.bindInputEvents_ = function(htmlInput) {
+  // Trap Enter without IME and Esc to hide.
+  this.onKeyDownWrapper_ =
+      Blockly.bindEventWithChecks_(
+          htmlInput, 'keydown', this, this.onHtmlInputKeyDown_);
+  // Resize after every keystroke.
+  this.onKeyUpWrapper_ =
+      Blockly.bindEventWithChecks_(
+          htmlInput, 'keyup', this, this.onHtmlInputChange_);
+  // Repeatedly resize when holding down a key.
+  this.onKeyPressWrapper_ =
+      Blockly.bindEventWithChecks_(
+          htmlInput, 'keypress', this, this.onHtmlInputChange_);
+
+  // pxt-blockly: For modern browsers (IE 9+, Chrome, Firefox, etc.) that support the
+  // DOM input event, also trigger onHtmlInputChange_ then. The input event
+  // is triggered on keypress but after the value of the text input
+  // has updated, allowing us to resize the block at that time.
+  this.onInputWrapper_ =
+      Blockly.bindEventWithChecks_(
+          htmlInput, 'input', this, this.onHtmlInputChange_);
+
+  // TODO: Figure out if this is necessary.
+  this.onWorkspaceChangeWrapper_ = this.resizeEditor_.bind(this);
+  this.workspace_.addChangeListener(this.onWorkspaceChangeWrapper_);
 };
-Blockly.FieldTextInput.prototype.widgetDisposeAnimationFinished_ = function () {
-  return function () {
-    var a = Blockly.WidgetDiv.DIV.style;
-    a.width = "auto";
-    a.height = "auto";
-    a.fontSize = "";
-    Blockly.WidgetDiv.DIV.className = "blocklyWidgetDiv";
-    Blockly.WidgetDiv.DIV.removeAttribute("style");
-    Blockly.FieldTextInput.htmlInput_.style.transition = "";
-    Blockly.FieldTextInput.htmlInput_ = null;
-  };
+Blockly.FieldTextInput.prototype.unbindInputEvents_ = function() {
+  Blockly.unbindEvent_(this.onKeyDownWrapper_);
+  Blockly.unbindEvent_(this.onKeyUpWrapper_);
+  Blockly.unbindEvent_(this.onKeyPressWrapper_);
+  Blockly.unbindEvent_(this.onInputWrapper_);
+  this.workspace_.removeChangeListener(this.onWorkspaceChangeWrapper_);
 };
+
 Blockly.FieldTextInput.prototype.maybeSaveEdit_ = function () {
   var a = Blockly.FieldTextInput.htmlInput_,
     b = a.value;
@@ -31313,10 +31563,10 @@ Blockly.FieldNote.prototype.stepOctaveAnimation_ = function () {
       ),
       requestAnimationFrame(this.stepOctaveAnimation_.bind(this)));
 };
-Blockly.FieldNote.prototype.setNoteNum_ = function (a) {
-  a = this.callValidator(a);
-  this.setValue(a);
-  Blockly.FieldTextInput.htmlInput_.value = a;
+Blockly.FieldNote.prototype.setNoteNum_ = function(noteNum) {
+  noteNum = this.callValidator(noteNum);
+  this.setValue(noteNum);
+  this.updateSelection_();
 };
 Blockly.FieldNote.prototype.setText = function (a) {
   Blockly.FieldNote.superClass_.setText.call(this, a);
@@ -31460,8 +31710,12 @@ Blockly.FieldTextDropdown.prototype.positionArrow =
   Blockly.FieldDropdown.prototype.positionArrow;
 Blockly.FieldTextDropdown.prototype.showDropdown_ =
   Blockly.FieldDropdown.prototype.showEditor_;
-Blockly.FieldTextDropdown.prototype.onHide =
-  Blockly.FieldDropdown.prototype.onHide;
+
+Blockly.FieldTextDropdown.prototype.onHide = function() {
+  Blockly.WidgetDiv.hide();
+  Blockly.FieldDropdown.prototype.onHide.call(this);
+};
+
 Blockly.Field.register("field_textdropdown", Blockly.FieldTextDropdown);
 Blockly.FieldNumber = function (a, b, c, d, e) {
   b = this.getNumRestrictor(b, c, d);
@@ -31606,6 +31860,10 @@ Blockly.FieldNumber.updateDisplay_ = function (a, b) {
   Blockly.FieldNumber.superClass_.resizeEditor_.call(
     Blockly.FieldNumber.activeField_
   );
+   Blockly.FieldTextInput.htmlInput_.setSelectionRange(newValue.length,
+      newValue.length);
+   Blockly.FieldTextInput.htmlInput_.scrollLeft =
+      Blockly.FieldTextInput.htmlInput_.scrollWidth;
   c.setSelectionRange(b, b);
   c.scrollLeft = c.scrollWidth;
   Blockly.FieldNumber.activeField_.validate_();
@@ -31660,24 +31918,138 @@ Blockly.FieldMatrix.ARROW_SIZE = 12;
 Blockly.FieldMatrix.MATRIX_NODE_SIZE = 18;
 Blockly.FieldMatrix.MATRIX_NODE_RADIUS = 4;
 Blockly.FieldMatrix.MATRIX_NODE_PAD = 5;
-Blockly.FieldMatrix.ZEROS = "0000000000000000000000000";
-Blockly.FieldMatrix.ONES = "1111111111111111111111111";
+Blockly.FieldMatrix.ZEROS = '0000000000000000' +
+                            '0000000000000000' +
+                            '0000000000000000' +
+                            '0000000000000000' +
+                            '0000000000000000' +
+                            '0000000000000000' +
+                            '0000000000000000' +
+                            '0000000000000000';
+Blockly.FieldMatrix.ONES =  '1111111111111111' +
+                            '1111111111111111' +
+                            '1111111111111111' +
+                            '1111111111111111' +
+                            '1111111111111111' +
+                            '1111111111111111' +
+                            '1111111111111111' +
+                            '1111111111111111';
+Blockly.FieldMatrix.ICONS_LIST =[
+                            "01111111000010000001010001100011000000000111111100000001000000010111111100000000011111110000100000010100011000110000000001111111",
+                            "0001110010010000010100101000000101001100000001010010100000011100100100",
+                            "00000000000000000000000000011000000110000001100000011000000110000001100011111111011111100011110000011000000000000000000000000000",
+                            "00000000000000000000000000011000001111000111111011111111000110000001100000011000000110000001100000011000000000000000000000000000",
+                            "00000000000000000000000000000000000010000000110000001110111111111111111100001110000011000000100000000000000000000000000000000000",
+                            "00000000000000000000000000000000000100000011000001110000111111111111111101110000001100000001000000000000000000000000000000000000",
+                            "00000000001111000100001001000010010000100011110000000000000000000000000000000000001111000100001001000010010000100011110000000000",
+                            "01111100100000101000000110011001010110010010000100010010000011000000110000010010001000010101100110011001100000011000001001111100",
+                            "00111100011001101110011111111111111111111111111101111110001111000011110001100110111001111111111111111111111111110111111000111100",
+                            "00111100011111101111111111111111111111111110011101100110001111000011110001111110111111111111111111111111111001110110011000111100",
+                            "00000000111111100100000100101101000101010000100100000110000000000000000000000110000010010001010100101101010000011111111100000000",
+                          ];
+// Blockly.FieldMatrix.prototype.init = function () {
+//   if (!this.fieldGroup_) {
+//     this.fieldGroup_ = Blockly.utils.createSvgElement("g", {}, null);
+//     this.size_.width =
+//       Blockly.FieldMatrix.THUMBNAIL_SIZE +
+//       Blockly.FieldMatrix.ARROW_SIZE +
+//       1.5 * Blockly.BlockSvg.DROPDOWN_ARROW_PADDING;
+//     this.sourceBlock_.getSvgRoot().appendChild(this.fieldGroup_);
+//     var a = Blockly.utils.createSvgElement(
+//       "g",
+//       {
+//         transform:
+//           "translate(" +
+//           Blockly.BlockSvg.DROPDOWN_ARROW_PADDING / 2 +
+//           ", " +
+//           (this.size_.height - Blockly.FieldMatrix.THUMBNAIL_SIZE) / 2 +
+//           ")",
+//         "pointer-events": "bounding-box",
+//         cursor: "pointer",
+//       },
+//       this.fieldGroup_
+//     );
+//     this.ledThumbNodes_ = [];
+//     for (
+//       var b = Blockly.FieldMatrix.THUMBNAIL_NODE_SIZE,
+//         c = Blockly.FieldMatrix.THUMBNAIL_NODE_PAD,
+//         d = 0;
+//       5 > d;
+//       d++
+//     ) {
+//       for (var e = 0; 5 > e; e++)
+//         this.ledThumbNodes_.push(
+//           Blockly.utils.createSvgElement(
+//             "rect",
+//             {
+//               x: (b + c) * e + c,
+//               y: (b + c) * d + c,
+//               width: b,
+//               height: b,
+//               rx: c,
+//               ry: c,
+//             },
+//             a
+//           )
+//         );
+//       a.style.cursor = "default";
+//       this.updateMatrix_();
+//     }
+//     this.arrow_ ||
+//       ((this.arrow_ = Blockly.utils.createSvgElement(
+//         "image",
+//         {
+//           height: Blockly.FieldMatrix.ARROW_SIZE + "px",
+//           width: Blockly.FieldMatrix.ARROW_SIZE + "px",
+//           transform:
+//             "translate(" +
+//             (Blockly.FieldMatrix.THUMBNAIL_SIZE +
+//               1.5 * Blockly.BlockSvg.DROPDOWN_ARROW_PADDING) +
+//             ", " +
+//             (this.size_.height - Blockly.FieldMatrix.ARROW_SIZE) / 2 +
+//             ")",
+//         },
+//         this.fieldGroup_
+//       )),
+//       this.arrow_.setAttributeNS(
+//         "http://www.w3.org/1999/xlink",
+//         "xlink:href",
+//         Blockly.mainWorkspace.options.pathToMedia + "dropdown-arrow.svg"
+//       ),
+//       (this.arrow_.style.cursor = "default"));
+//     this.mouseDownWrapper_ = Blockly.bindEventWithChecks_(
+//       this.getClickTarget_(),
+//       "mousedown",
+//       this,
+//       this.onMouseDown_
+//     );
+//   }
+// };
 Blockly.FieldMatrix.prototype.init = function () {
   if (!this.fieldGroup_) {
     this.fieldGroup_ = Blockly.utils.createSvgElement("g", {}, null);
-    this.size_.width =
-      Blockly.FieldMatrix.THUMBNAIL_SIZE +
-      Blockly.FieldMatrix.ARROW_SIZE +
-      1.5 * Blockly.BlockSvg.DROPDOWN_ARROW_PADDING;
+    this.size_.width = Blockly.FieldMatrix.THUMBNAIL_SIZE;
     this.sourceBlock_.getSvgRoot().appendChild(this.fieldGroup_);
+
+    this.matrix_ =
+            '0000000000000000' +
+            '0000000000000000' +
+            '0000000000000000' +
+            '0000000000000000' +
+            '0000000000000000' +
+            '0000000000000000' +
+            '0000000000000000' +
+            '0000000000000000';
+    var thumbX = 0;
+    var thumbY = (this.size_.height - Blockly.FieldMatrix.THUMBNAIL_SIZE) / 2;
     var a = Blockly.utils.createSvgElement(
       "g",
       {
         transform:
           "translate(" +
-          Blockly.BlockSvg.DROPDOWN_ARROW_PADDING / 2 +
+          -12 +
           ", " +
-          (this.size_.height - Blockly.FieldMatrix.THUMBNAIL_SIZE) / 2 +
+          0 +
           ")",
         "pointer-events": "bounding-box",
         cursor: "pointer",
@@ -31685,59 +32057,39 @@ Blockly.FieldMatrix.prototype.init = function () {
       this.fieldGroup_
     );
     this.ledThumbNodes_ = [];
-    for (
-      var b = Blockly.FieldMatrix.THUMBNAIL_NODE_SIZE,
-        c = Blockly.FieldMatrix.THUMBNAIL_NODE_PAD,
-        d = 0;
-      5 > d;
-      d++
-    ) {
-      for (var e = 0; 5 > e; e++)
+    var nodeSize = Blockly.FieldMatrix.THUMBNAIL_NODE_SIZE * 0.50;
+    var nodePad = Blockly.FieldMatrix.THUMBNAIL_NODE_PAD * 0.50;
+    for (var i = 0; i < 16; i++) {
+      for (var n = 0; n < 8; n++) {
+        var attr = {
+          'x': ((nodeSize + nodePad) * i) + nodePad + 5,
+          'y': ((nodeSize + nodePad) * n) + nodePad + 5,
+          'width': nodeSize, 'height': nodeSize,
+          'rx': nodePad, 'ry': nodePad
+        };
         this.ledThumbNodes_.push(
-          Blockly.utils.createSvgElement(
-            "rect",
-            {
-              x: (b + c) * e + c,
-              y: (b + c) * d + c,
-              width: b,
-              height: b,
-              rx: c,
-              ry: c,
-            },
-            a
-          )
+            Blockly.utils.createSvgElement('rect', attr, a)
         );
-      a.style.cursor = "default";
+      }
+      a.style.cursor = 'default';
       this.updateMatrix_();
     }
-    this.arrow_ ||
-      ((this.arrow_ = Blockly.utils.createSvgElement(
-        "image",
-        {
-          height: Blockly.FieldMatrix.ARROW_SIZE + "px",
-          width: Blockly.FieldMatrix.ARROW_SIZE + "px",
-          transform:
-            "translate(" +
-            (Blockly.FieldMatrix.THUMBNAIL_SIZE +
-              1.5 * Blockly.BlockSvg.DROPDOWN_ARROW_PADDING) +
-            ", " +
-            (this.size_.height - Blockly.FieldMatrix.ARROW_SIZE) / 2 +
-            ")",
-        },
-        this.fieldGroup_
-      )),
-      this.arrow_.setAttributeNS(
-        "http://www.w3.org/1999/xlink",
-        "xlink:href",
-        Blockly.mainWorkspace.options.pathToMedia + "dropdown-arrow.svg"
-      ),
-      (this.arrow_.style.cursor = "default"));
+    
+    if (!this.arrow_) {
+      var arrowX = Blockly.FieldMatrix.THUMBNAIL_SIZE;
+      var arrowY = (this.size_.height - Blockly.FieldMatrix.ARROW_SIZE) / 2;
+      this.arrow_ = Blockly.utils.createSvgElement('image', {
+        'height': Blockly.FieldMatrix.ARROW_SIZE + 'px',
+        'width': Blockly.FieldMatrix.ARROW_SIZE + 'px',
+        'transform': 'translate(' + arrowX + ', ' + arrowY + ')'
+      }, this.fieldGroup_);
+      // this.arrow_.setAttributeNS('http://www.w3.org/1999/xlink',
+      //     'xlink:href', Blockly.mainWorkspace.options.pathToMedia +
+      //     'dropdown-arrow.svg');
+      this.arrow_.style.cursor = 'default';
+    }
     this.mouseDownWrapper_ = Blockly.bindEventWithChecks_(
-      this.getClickTarget_(),
-      "mousedown",
-      this,
-      this.onMouseDown_
-    );
+      this.getClickTarget_(), 'mousedown', this, this.onMouseDown_);
   }
 };
 Blockly.FieldMatrix.prototype.setValue = function (a) {
@@ -31754,7 +32106,7 @@ Blockly.FieldMatrix.prototype.setValue = function (a) {
           a
         )
       ),
-    (this.matrix_ = a += Blockly.FieldMatrix.ZEROS.substr(0, 25 - a.length)),
+    (this.matrix_ = a += Blockly.FieldMatrix.ZEROS.substr(0, 128 - a.length)),
     this.updateMatrix_());
 };
 Blockly.FieldMatrix.prototype.getValue = function () {
@@ -31763,10 +32115,10 @@ Blockly.FieldMatrix.prototype.getValue = function () {
 Blockly.FieldMatrix.prototype.showEditor_ = function () {
   Blockly.DropDownDiv.hideWithoutAnimation();
   Blockly.DropDownDiv.clearContent();
-  var a = Blockly.DropDownDiv.getContentDiv(),
-    b =
-      5 * Blockly.FieldMatrix.MATRIX_NODE_SIZE +
-      6 * Blockly.FieldMatrix.MATRIX_NODE_PAD;
+  var a = Blockly.DropDownDiv.getContentDiv(),b=null,
+   width = 16 * (Blockly.FieldMatrix.MATRIX_NODE_SIZE + Blockly.FieldMatrix.MATRIX_NODE_PAD),
+   height = 8 * (Blockly.FieldMatrix.MATRIX_NODE_SIZE + Blockly.FieldMatrix.MATRIX_NODE_PAD);
+      
   this.matrixStage_ = Blockly.utils.createSvgElement(
     "svg",
     {
@@ -31774,24 +32126,24 @@ Blockly.FieldMatrix.prototype.showEditor_ = function () {
       "xmlns:html": "http://www.w3.org/1999/xhtml",
       "xmlns:xlink": "http://www.w3.org/1999/xlink",
       version: "1.1",
-      height: b + "px",
-      width: b + "px",
+      height: height + "px",
+      width: width + "px",
     },
     a
   );
   this.ledButtons_ = [];
-  for (b = 0; 5 > b; b++)
-    for (var c = 0; 5 > c; c++) {
+  for (b = 0; 16 > b; b++)
+    for (var c = 0; 8 > c; c++) {
       var d = Blockly.utils.createSvgElement(
         "rect",
         {
           x:
-            Blockly.FieldMatrix.MATRIX_NODE_SIZE * c +
-            Blockly.FieldMatrix.MATRIX_NODE_PAD * (c + 1) +
-            "px",
-          y:
             Blockly.FieldMatrix.MATRIX_NODE_SIZE * b +
             Blockly.FieldMatrix.MATRIX_NODE_PAD * (b + 1) +
+            "px",
+          y:
+            Blockly.FieldMatrix.MATRIX_NODE_SIZE * c +
+            Blockly.FieldMatrix.MATRIX_NODE_PAD * (c + 1) +
             "px",
           width: Blockly.FieldMatrix.MATRIX_NODE_SIZE,
           height: Blockly.FieldMatrix.MATRIX_NODE_SIZE,
@@ -31839,6 +32191,39 @@ Blockly.FieldMatrix.prototype.showEditor_ = function () {
     this,
     this.fillMatrix_
   );
+
+  let _this = this;
+  if (!Blockly.FieldMatrix.ICONS_LIST)
+      return;
+  var buttonDiv = a.children[1];
+  buttonDiv.style = 'display: flex; justify-content: space-around; align-items: center;';
+
+  for (var _i2 = 0, _n2 = Math.ceil(Blockly.FieldMatrix.ICONS_LIST.length * 0.5); _i2 < _n2; ++_i2) {
+    var iconDiv = document.createElement('div');
+    buttonDiv.insertBefore(iconDiv, buttonDiv.lastChild);
+    var _loop = function _loop() {
+      var icon = Blockly.FieldMatrix.ICONS_LIST[_i2 + j * _n2];
+      if (!icon)
+          return "continue";
+      var testBtn = _this.createButton2(icon);
+      var testBtnDiv = document.createElement('div');
+      testBtnDiv.appendChild(testBtn);
+      iconDiv.appendChild(testBtnDiv);
+      Blockly.bindEvent_(
+        testBtn,
+        "mousedown",
+        this,
+        function() {
+          return _this.setValue(icon);
+        }
+      );
+    };
+    for (var j = 0; j < 2; ++j) {
+      var _ret = _loop();
+      if (_ret === "continue")
+          continue;
+    }
+  };
   this.updateMatrix_();
 };
 this.nodeCallback_ = function (a, b) {
@@ -31876,6 +32261,34 @@ Blockly.FieldMatrix.prototype.createButton_ = function (a) {
       );
   return b;
 };
+Blockly.FieldMatrix.prototype.createButton2 = function(icon) {
+  var nodeSize = 2;
+  var nodePad = 1;
+  var button = Blockly.utils.createSvgElement('svg', {
+      'xmlns': 'http://www.w3.org/2000/svg',
+      'xmlns:html': 'http://www.w3.org/1999/xhtml',
+      'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+      'version': '1.1',
+      'height': (nodeSize + nodePad) * (8 + nodePad) + 'px',
+      'width': (nodeSize + nodePad) * (16 + nodePad) + 'px'
+  });
+  for (var i = 0; i < 16; i++) {
+      for (var n = 0; n < 8; n++) {
+          var index = i * 8 + n;
+          var isOn = index < icon.length && icon.charAt(index) === '1';
+          Blockly.utils.createSvgElement('rect', {
+              'x': (nodeSize + nodePad) * (i + nodePad),
+              'y': (nodeSize + nodePad) * (n + nodePad),
+              'width': nodeSize,
+              'height': nodeSize,
+              'rx': nodePad,
+              'ry': nodePad,
+              'fill': isOn ? '#FFFFFF' : this.sourceBlock_.colourSecondary_
+          }, button);
+      }
+  }
+  return button;
+}
 Blockly.FieldMatrix.prototype.updateMatrix_ = function () {
   for (var a = 0; a < this.matrix_.length; a++)
     "0" === this.matrix_[a]
@@ -32331,7 +32744,7 @@ Blockly.Generator.prototype.statementToCode = function (a, b) {
   return b;
 };
 Blockly.Generator.prototype.addLoopTrap = function (a, b) {
-  b = b.replace(/\$/g, "$$$$");
+  // b = b.replace(/\$/g, "$$$$"); issue251
   this.INFINITE_LOOP_TRAP &&
     (a = this.INFINITE_LOOP_TRAP.replace(/%1/g, "'" + b + "'") + a);
   this.STATEMENT_PREFIX &&
@@ -32436,17 +32849,70 @@ Blockly.Names.equals = function (a, b) {
 };
 Blockly.Procedures = {};
 Blockly.Procedures.NAME_TYPE = Blockly.PROCEDURE_CATEGORY_NAME;
-Blockly.Procedures.allProcedures = function (a) {
-  a = a.getAllBlocks();
-  for (var b = [], c = [], d = 0; d < a.length; d++)
-    if (a[d].getProcedureDef) {
-      var e = a[d].getProcedureDef();
-      e && (e[2] ? b.push(e) : c.push(e));
+Blockly.Procedures.allProcedures = function(root) {
+  var blocks = root.getAllBlocks(false);
+  var proceduresReturn = [];
+  var proceduresNoReturn = [];
+  for (var i = 0; i < blocks.length; i++) {
+    if (blocks[i].getProcedureDef) {
+      var tuple = blocks[i].getProcedureDef();
+      if (tuple) {
+        if (tuple[2]) {
+          proceduresReturn.push(tuple);
+        } else {
+          proceduresNoReturn.push(tuple);
+        }
+      }
     }
-  c.sort(Blockly.Procedures.procTupleComparator_);
-  b.sort(Blockly.Procedures.procTupleComparator_);
-  return [c, b];
+  }
+  proceduresNoReturn.sort(Blockly.Procedures.procTupleComparator_);
+  proceduresReturn.sort(Blockly.Procedures.procTupleComparator_);
+  return [proceduresNoReturn, proceduresReturn];
 };
+Blockly.Procedures.procTupleComparator_ = function(ta, tb) {
+  return ta[0].toLowerCase().localeCompare(tb[0].toLowerCase());
+};
+Blockly.Procedures.findLegalName = function(name, block) {
+  if (block.isInFlyout) {
+    // Flyouts can have multiple procedures called 'do something'.
+    return name;
+  }
+  while (!Blockly.Procedures.isLegalName_(name, block.workspace, block)) {
+    // Collision with another procedure.
+    var r = name.match(/^(.*?)(\d+)$/);
+    if (!r) {
+      name += '2';
+    } else {
+      name = r[1] + (parseInt(r[2], 10) + 1);
+    }
+  }
+  return name;
+};
+Blockly.Procedures.isLegalName_ = function(name, workspace, opt_exclude) {
+  return !Blockly.Procedures.isNameUsed(name, workspace, opt_exclude);
+};
+Blockly.Procedures.isNameUsed = function(name, workspace, opt_exclude) {
+  var blocks = workspace.getAllBlocks(false);
+  // Iterate through every block and check the name.
+  for (var i = 0; i < blocks.length; i++) {
+    if (blocks[i] == opt_exclude) {
+      continue;
+    }
+    var procName = '';
+    if (blocks[i].getProcedureDef) {
+      procName = blocks[i].getProcedureDef()[0];
+    } else if (blocks[i].getName) {
+      // pxt-blockly: also check new function blocks, which use getName() for the function name.
+      procName = blocks[i].getName();
+    }
+
+    if (Blockly.Names.equals(procName, name)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 Blockly.Procedures.allProcedureMutations = function (a) {
   a = a.getAllBlocks();
   for (var b = [], c = 0; c < a.length; c++)
@@ -32476,44 +32942,88 @@ Blockly.Procedures.findLegalName = function (a, b) {
   }
   return a;
 };
-Blockly.Procedures.isLegalName_ = function (a, b, c) {
-  return !Blockly.Procedures.isNameUsed(a, b, c);
-};
-Blockly.Procedures.isNameUsed = function (a, b, c) {
-  b = b.getAllBlocks();
-  for (var d = 0; d < b.length; d++)
-    if (b[d] != c && b[d].getProcedureDef) {
-      var e = b[d].getProcedureDef();
-      if (Blockly.Names.equals(e[0], a)) return !1;
+Blockly.Procedures.rename = function(name) {
+  // Strip leading and trailing whitespace.  Beyond this, all names are legal.
+  name = name.trim();
+
+  // Ensure two identically-named procedures don't exist.
+  var legalName = Blockly.Procedures.findLegalName(name, this.getSourceBlock());
+  var oldName = this.getValue();
+  //pxtblockly: ensure no empty procedure name is set
+  if (!legalName) return oldName;
+  if (oldName != name && oldName != legalName) {
+    // Rename any callers.
+    var blocks = this.getSourceBlock().workspace.getAllBlocks(false);
+    for (var i = 0; i < blocks.length; i++) {
+      if (blocks[i].renameProcedure) {
+        blocks[i].renameProcedure(oldName, legalName);
+      }
     }
-  return !0;
-};
-Blockly.Procedures.rename = function (a) {
-  a = a.replace(/^[\s\xa0]+|[\s\xa0]+$/g, "");
-  var b = Blockly.Procedures.findLegalName(a, this.sourceBlock_),
-    c = this.text_;
-  if (c != a && c != b) {
-    a = this.sourceBlock_.workspace.getAllBlocks();
-    for (var d = 0; d < a.length; d++)
-      a[d].renameProcedure && a[d].renameProcedure(c, b);
   }
-  return b;
+  return legalName;
 };
-Blockly.Procedures.flyoutCategory = function (a) {
-  var b = [];
-  Blockly.Procedures.addCreateButton_(a, b);
-  a = Blockly.Procedures.allProcedureMutations(a);
-  a = Blockly.Procedures.sortProcedureMutations_(a);
-  for (var c = 0; c < a.length; c++) {
-    var d = a[c],
-      e = goog.dom.createDom("block");
-    e.setAttribute("type", "procedures_call");
-    e.setAttribute("gap", 16);
-    e.appendChild(d);
-    b.push(e);
+
+Blockly.Procedures.flyoutCategory = function(workspace) {
+  var xmlList = [];
+  if (Blockly.Blocks.procedures_defnoreturn) {
+    var block = goog.dom.createElement('block');
+    block.setAttribute('type', 'procedures_defnoreturn');
+    block.setAttribute('gap', 16);
+    var nameField = goog.dom.createElement('field');
+    nameField.setAttribute('name', 'NAME');
+    nameField.appendChild(goog.dom.createTextNode(
+        Blockly.Msg.PROCEDURES_DEFNORETURN_PROCEDURE));
+    block.appendChild(nameField);
+    xmlList.push(block);
   }
-  return b;
+  if (Blockly.Blocks.procedures_defreturn) {
+    var block = goog.dom.createElement('block');
+    block.setAttribute('type', 'procedures_defreturn');
+    block.setAttribute('gap', 16);
+    var nameField = goog.dom.createElement('field');
+    nameField.setAttribute('name', 'NAME');
+    nameField.appendChild(goog.dom.createTextNode(
+        Blockly.Msg.PROCEDURES_DEFNORETURN_PROCEDURE));
+    block.appendChild(nameField);
+    xmlList.push(block);
+  }
+  if (Blockly.Blocks['procedures_ifreturn']) {
+    // <block type="procedures_ifreturn" gap="16"></block>
+    var block = goog.dom.createElement('block');
+    block.setAttribute('type', 'procedures_ifreturn');
+    block.setAttribute('gap', 16);
+    xmlList.push(block);
+  }
+  if (xmlList.length) {
+    // Add slightly larger gap between system blocks and user calls.
+    xmlList[xmlList.length - 1].setAttribute('gap', 24);
+  }
+
+  function populateProcedures(procedureList, templateName) {
+    for (var i = 0; i < procedureList.length; i++) {
+      var name = procedureList[i][0];
+      var args = procedureList[i][1];
+      var block = goog.dom.createElement('block');
+      block.setAttribute('type', templateName);
+      block.setAttribute('gap', 16);
+      var mutation = goog.dom.createElement('mutation');
+      mutation.setAttribute('name', name);
+      block.appendChild(mutation);
+      for (var j = 0; j < args.length; j++) {
+        var arg = goog.dom.createElement('arg');
+        arg.setAttribute('name', args[j]);
+        mutation.appendChild(arg);
+      }
+      xmlList.push(block);
+    }
+  }
+
+  var tuple = Blockly.Procedures.allProcedures(workspace);
+  populateProcedures(tuple[0], 'procedures_callnoreturn');
+  populateProcedures(tuple[1], 'procedures_callreturn');
+  return xmlList;
 };
+
 Blockly.Procedures.addCreateButton_ = function (a, b) {
   var c = goog.dom.createDom("button");
   c.setAttribute("text", Blockly.Msg.NEW_PROCEDURE);
@@ -32523,129 +33033,55 @@ Blockly.Procedures.addCreateButton_ = function (a, b) {
   });
   b.push(c);
 };
-Blockly.Procedures.getCallers = function (a, b, c, d) {
-  var e = [],
-    f = b.getTopBlocks();
-  for (b = 0; b < f.length; b++) {
-    var g = f[b];
-    (g.id != c.id || d) && e.push.apply(e, g.getDescendants(!1));
+Blockly.Procedures.getCallers = function(name, workspace) {
+  var callers = [];
+  var blocks = workspace.getAllBlocks(false);
+  // Iterate through every block and check the name.
+  for (var i = 0; i < blocks.length; i++) {
+    if (blocks[i].getProcedureCall) {
+      var procName = blocks[i].getProcedureCall();
+      // Procedure name may be null if the block is only half-built.
+      if (procName && Blockly.Names.equals(procName, name)) {
+        callers.push(blocks[i]);
+      }
+    }
   }
-  c = [];
-  for (b = 0; b < e.length; b++)
-    (g = e[b]),
-      g.type == Blockly.PROCEDURES_CALL_BLOCK_TYPE &&
-        (d = g.getProcCode()) &&
-        d == a &&
-        c.push(g);
-  return c;
+  return callers;
 };
-Blockly.Procedures.mutateCallersAndPrototype = function (a, b, c) {
-  var d = Blockly.Procedures.getDefineBlock(a, b);
-  b = Blockly.Procedures.getPrototypeBlock(a, b);
-  if (d && b) {
-    a = Blockly.Procedures.getCallers(a, d.workspace, d, !0);
-    a.push(b);
-    Blockly.Events.setGroup(!0);
-    for (d = 0; (b = a[d]); d++) {
-      var e = b.mutationToDom();
-      e = e && Blockly.Xml.domToText(e);
-      b.domToMutation(c);
-      var f = b.mutationToDom();
-      f = f && Blockly.Xml.domToText(f);
-      e != f &&
-        Blockly.Events.fire(
-          new Blockly.Events.BlockChange(b, "mutation", null, e, f)
-        );
+Blockly.Procedures.mutateCallers = function(defBlock) {
+  var oldRecordUndo = Blockly.Events.recordUndo;
+  var name = defBlock.getProcedureDef()[0];
+  var xmlElement = defBlock.mutationToDom(true);
+  var callers = Blockly.Procedures.getCallers(name, defBlock.workspace);
+  for (var i = 0, caller; caller = callers[i]; i++) {
+    var oldMutationDom = caller.mutationToDom();
+    var oldMutation = oldMutationDom && Blockly.Xml.domToText(oldMutationDom);
+    caller.domToMutation(xmlElement);
+    var newMutationDom = caller.mutationToDom();
+    var newMutation = newMutationDom && Blockly.Xml.domToText(newMutationDom);
+    if (oldMutation != newMutation) {
+      // Fire a mutation on every caller block.  But don't record this as an
+      // undo action since it is deterministically tied to the procedure's
+      // definition mutation.
+      Blockly.Events.recordUndo = false;
+      Blockly.Events.fire(new Blockly.Events.BlockChange(
+          caller, 'mutation', null, oldMutation, newMutation));
+      Blockly.Events.recordUndo = oldRecordUndo;
     }
-    Blockly.Events.setGroup(!1);
-  } else alert("No define block on workspace");
+  }
 };
-Blockly.Procedures.getDefineBlock = function (a, b) {
-  b = b.getTopBlocks(!1);
-  for (var c = 0; c < b.length; c++)
-    if (b[c].type == Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE) {
-      var d = b[c].getInput("custom_block").connection.targetBlock();
-      if (d.getProcCode && d.getProcCode() == a) return b[c];
+Blockly.Procedures.getDefinition = function(name, workspace) {
+  // Assume that a procedure definition is a top block.
+  var blocks = workspace.getTopBlocks(false);
+  for (var i = 0; i < blocks.length; i++) {
+    if (blocks[i].getProcedureDef) {
+      var tuple = blocks[i].getProcedureDef();
+      if (tuple && Blockly.Names.equals(tuple[0], name)) {
+        return blocks[i];
+      }
     }
+  }
   return null;
-};
-Blockly.Procedures.getPrototypeBlock = function (a, b) {
-  return (a = Blockly.Procedures.getDefineBlock(a, b))
-    ? a.getInput("custom_block").connection.targetBlock()
-    : null;
-};
-Blockly.Procedures.newProcedureMutation = function () {
-  return Blockly.Xml.textToDom(
-    '<xml><mutation proccode="' +
-      Blockly.Msg.PROCEDURE_DEFAULT_NAME +
-      '" argumentids="[]" argumentnames="[]" argumentdefaults="[]" warp="false"></mutation></xml>'
-  ).firstChild;
-};
-Blockly.Procedures.createProcedureDefCallback_ = function (a) {
-  Blockly.Procedures.externalProcedureDefCallback(
-    Blockly.Procedures.newProcedureMutation(),
-    Blockly.Procedures.createProcedureCallbackFactory_(a)
-  );
-};
-Blockly.Procedures.createProcedureCallbackFactory_ = function (a) {
-  return function (b) {
-    if (b) {
-      b =
-        '<xml><block type="procedures_definition"><statement name="custom_block"><shadow type="procedures_prototype">' +
-        Blockly.Xml.domToText(b) +
-        "</shadow></statement></block></xml>";
-      b = Blockly.Xml.textToDom(b).firstChild;
-      Blockly.Events.setGroup(!0);
-      b = Blockly.Xml.domToBlock(b, a);
-      var c = a.scale,
-        d = -a.scrollX;
-      d = a.RTL ? d + (a.getMetrics().contentWidth - 30) : d + 30;
-      b.moveBy(d / c, (-a.scrollY + 30) / c);
-      b.scheduleSnapAndBump();
-      Blockly.Events.setGroup(!1);
-    }
-  };
-};
-Blockly.Procedures.editProcedureCallback_ = function (a) {
-  if (a.type == Blockly.PROCEDURES_DEFINITION_BLOCK_TYPE) {
-    a = a.getInput("custom_block");
-    if (!a) {
-      alert("Bad input");
-      return;
-    }
-    a = a.connection;
-    if (!a) {
-      alert("Bad connection");
-      return;
-    }
-    a = a.targetBlock();
-    if (!a || !a.type == Blockly.PROCEDURES_PROTOTYPE_BLOCK_TYPE) {
-      alert("Bad inner block");
-      return;
-    }
-  } else if (a.type == Blockly.PROCEDURES_CALL_BLOCK_TYPE) {
-    var b = a.workspace.isFlyout ? a.workspace.targetWorkspace : a.workspace;
-    a = Blockly.Procedures.getPrototypeBlock(a.getProcCode(), b);
-  }
-  Blockly.Procedures.externalProcedureDefCallback(
-    a.mutationToDom(),
-    Blockly.Procedures.editProcedureCallbackFactory_(a)
-  );
-};
-Blockly.Procedures.editProcedureCallbackFactory_ = function (a) {
-  return function (b) {
-    b &&
-      Blockly.Procedures.mutateCallersAndPrototype(
-        a.getProcCode(),
-        a.workspace,
-        b
-      );
-  };
-};
-Blockly.Procedures.externalProcedureDefCallback = function () {
-  alert(
-    "External procedure editor must be override Blockly.Procedures.externalProcedureDefCallback"
-  );
 };
 Blockly.Procedures.makeEditOption = function (a) {
   return {
@@ -32655,32 +33091,6 @@ Blockly.Procedures.makeEditOption = function (a) {
       Blockly.Procedures.editProcedureCallback_(a);
     },
   };
-};
-Blockly.Procedures.showProcedureDefCallback_ = function (a) {
-  alert(
-    'TODO(#1136): implement showing procedure definition (procCode was "' +
-      a.procCode_ +
-      '")'
-  );
-};
-Blockly.Procedures.makeShowDefinitionOption = function (a) {
-  return {
-    enabled: !0,
-    text: Blockly.Msg.SHOW_PROCEDURE_DEFINITION,
-    callback: function () {
-      Blockly.Procedures.showProcedureDefCallback_(a);
-    },
-  };
-};
-Blockly.Procedures.deleteProcedureDefCallback = function (a, b) {
-  if (0 < Blockly.Procedures.getCallers(a, b.workspace, b, !1).length)
-    return !1;
-  a = b.workspace;
-  Blockly.Events.setGroup(!0);
-  b.dispose();
-  Blockly.Events.setGroup(!1);
-  a.refreshToolboxSelection_();
-  return !0;
 };
 Blockly.ScratchMsgs = {};
 Blockly.ScratchMsgs.locales = {};
@@ -33039,6 +33449,18 @@ Blockly.Flyout.prototype.show = function (a) {
   this.hide();
   this.clearOldBlocks_();
   this.setVisible(!0);
+   if (typeof a == 'string') {
+    var fnToApply = this.workspace_.targetWorkspace.getToolboxCategoryCallback(
+        a);
+    if (typeof fnToApply != 'function') {
+      throw TypeError('Couldn\'t find a callback function when opening' +
+          ' a toolbox category.');
+    }
+    a = fnToApply(this.workspace_.targetWorkspace);
+    if (!Array.isArray(a)) {
+      throw TypeError('Result of toolbox category callback must be an array.');
+    }
+  }
   for (
     var b = [], c = [], d = (this.permanentlyDisabled_.length = 0), e;
     (e = a[d]);
@@ -33051,7 +33473,7 @@ Blockly.Flyout.prototype.show = function (a) {
       a.splice.apply(a, [d, 1].concat(f));
       e = a[d];
     }
-    if (e.tagName) {
+    if (e && e.tagName) {
       var g = e.tagName.toUpperCase();
       f = this.horizontalLayout_ ? this.GAP_X : this.GAP_Y;
       if ("BLOCK" == g) {
@@ -33534,7 +33956,7 @@ Blockly.VerticalFlyout = function (a) {
 };
 goog.inherits(Blockly.VerticalFlyout, Blockly.Flyout);
 Blockly.VerticalFlyout.prototype.autoClose = !0;
-Blockly.VerticalFlyout.prototype.DEFAULT_WIDTH = 250;
+Blockly.VerticalFlyout.prototype.DEFAULT_WIDTH = 420;
 Blockly.VerticalFlyout.prototype.CHECKBOX_SIZE = 25;
 Blockly.VerticalFlyout.prototype.CHECKBOX_TOUCH_PADDING = 12;
 Blockly.VerticalFlyout.prototype.CHECKMARK_PATH =
@@ -33558,7 +33980,7 @@ Blockly.VerticalFlyout.prototype.CHECKBOX_SPACE_X =
   2 * Blockly.VerticalFlyout.prototype.CHECKBOX_MARGIN;
 Blockly.VerticalFlyout.prototype.init = function (a) {
   Blockly.VerticalFlyout.superClass_.init.call(this, a);
-  this.workspace_.scale = a.scale;
+  this.workspace_.scale = a.scale / 1.2;
 };
 Blockly.VerticalFlyout.prototype.createDom = function (a) {
   Blockly.VerticalFlyout.superClass_.createDom.call(this, a);
@@ -33644,7 +34066,8 @@ Blockly.VerticalFlyout.prototype.position = function () {
     if (a) {
       this.width_ = this.getWidth();
       if (this.parentToolbox_) {
-        var b = this.parentToolbox_.getWidth() - this.width_;
+        var b = 58;
+        // var b = this.parentToolbox_.getWidth() - this.width_;
         b = this.toolboxPosition_ == Blockly.TOOLBOX_AT_RIGHT ? a.viewWidth : b;
         var c = 0;
       } else
@@ -35556,7 +35979,7 @@ Blockly.Toolbox = function (a) {
   this.horizontalLayout_ = a.options.horizontalLayout;
   this.toolboxPosition = a.options.toolboxPosition;
 };
-Blockly.Toolbox.prototype.width = 310;
+Blockly.Toolbox.prototype.width = 100;
 Blockly.Toolbox.prototype.height = 0;
 Blockly.Toolbox.prototype.selectedItem_ = null;
 Blockly.Toolbox.prototype.init = function () {
@@ -35728,6 +36151,7 @@ Blockly.Toolbox.prototype.setSelectedItem = function (a, b) {
     (this.selectedItem_.setSelected(!0),
     (a = a.id_),
     b && this.scrollToCategoryById(a));
+    this.refreshSelection();
 };
 Blockly.Toolbox.prototype.setSelectedCategoryByName = function (a) {
   this.selectCategoryByName(a);
@@ -36224,7 +36648,7 @@ Blockly.Css.CONTENT = [
   "fill: $colour_textFieldText;",
   "}",
   ".blocklyEditableText>.blocklyEditableLabel {",
-  "fill: #fff;",
+  "fill: #0d0d0d;",
   "}",
   ".blocklyDropdownText {",
   "fill: $colour_text !important;",
@@ -37377,6 +37801,7 @@ Blockly.hideChaffInternal_ = function (a) {
     a.toolbox_ &&
       a.toolbox_.flyout_ &&
       a.toolbox_.flyout_.autoClose &&
+      a.toolbox_.flyout_.hide()  &&
       a.toolbox_.clearSelection());
 };
 Blockly.getMainWorkspace = function () {

@@ -377,6 +377,41 @@ Blockly.KukiLive.kuki_turn_left = function (a) {
   return ("FF 55 08 04 " + result.low + " " + result.high + " 00-");
 };
 
+Blockly.KukiLive.kuki_left_wheel_turn_left = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "ANGLE", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 360){
+    value = 360;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 05 " + result.low + " " + result.high + " 00-");
+};
+Blockly.KukiLive.kuki_left_wheel_turn_right = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "ANGLE", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 360){
+    value = 360;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 06 " + result.low + " " + result.high + " 00-");
+};
+
+Blockly.KukiLive.kuki_right_wheel_turn_left = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "ANGLE", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 360){
+    value = 360;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 07 " + result.low + " " + result.high + " 00-");
+};
+
+Blockly.KukiLive.kuki_right_wheel_turn_right = function (a) {
+  var value = Blockly.KukiLive.valueToCode(a, "ANGLE", Blockly.KukiLive.ORDER_ATOMIC);
+  if(value > 360){
+    value = 360;
+  }
+  var result = toTwoByteHex(parseInt(value));
+  return ("FF 55 08 08 " + result.low + " " + result.high + " 00-");
+};
+
 //* END MOTOR STTEPPER
 //! ******************************************************************* */
 

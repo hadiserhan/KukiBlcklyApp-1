@@ -21,22 +21,16 @@
    <script src="vendor/jquery/jquery-ui.min.js"></script>
    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
    <script src="js/horizontal/blocks_compressed_horizontal.js"></script>
-   <script src="KukiLive_compressed.js"></script>
-   <script src="WorkspaceSetupJs.js"></script>
-   <script src="js/kukiappearancegeneral.js"></script>
+   <script src="js/horizontal/KukiLive_compressed.js"></script>
+   <!-- <script src="WorkspaceSetupJs.js"></script> -->
 
-   <!-- <script src="js/classes/KUKIConnection.js"></script> -->
-   <script  type="module" src="js/KukiInterface.js"></script>
 
-   <!-- <script src="appearange-general.js?1212"></script> -->
-   <!-- <script src="js/horizontal/appearange-horizontal.js"></script> -->
-   <!-- <script src="kukiuploader.js?1212"></script> -->
-   <!-- <script src="unused/bluetooth.js?1212"></script> -->
-
-   <script src="js/fileoperations.js"></script>
-   <script src="js/examplesblockly.js"></script>
+   <script src="js/horizontal/kukiappearancegeneral.js"></script>
+   <script  type="module" src="js/horizontal/KukiInterface.js"></script>
+   <script src="js/lib/fileoperations.js"></script>
+   <script src="unused/examplesblockly.js"></script>
    <script src="js/lib/sweetalert.min.js"></script>
-   <script src="js/fontawesome.min.js"></script>
+   <script src="js/lib/fontawesome.min.js"></script>
 
    <script>
 
@@ -301,6 +295,34 @@
             </value>
          </block>
          <block type="kuki_turn_right">
+            <value name="ANGLE">
+               <shadow type="math_angle_CC">
+                  <field name="NUM">90</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_left_wheel_turn_left">
+            <value name="ANGLE">
+               <shadow type="math_angle_CC">
+                  <field name="NUM">90</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_left_wheel_turn_right">
+            <value name="ANGLE">
+               <shadow type="math_angle_CC">
+                  <field name="NUM">90</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_right_wheel_turn_left">
+            <value name="ANGLE">
+               <shadow type="math_angle_CC">
+                  <field name="NUM">90</field>
+               </shadow>
+            </value>
+         </block>
+         <block type="kuki_right_wheel_turn_right">
             <value name="ANGLE">
                <shadow type="math_angle_CC">
                   <field name="NUM">90</field>

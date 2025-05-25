@@ -165,7 +165,7 @@ Blockly.Blocks.event_button_pressed = {
       "args0": [
         {
           "type": "field_image",
-          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/button_pressed.svg",
+          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/mixed/button_pressed.svg",
           "width": 40,
           "height": 40,
           "alt": "Wait"
@@ -612,7 +612,7 @@ Blockly.Blocks.control_loop_number = {
           type: "field_image",
           src:
             Blockly.mainWorkspace.options.pathToMedia +
-            "kuki/control_loop_number.svg",
+            "kuki/mixed/control_loop_number.svg",
           width: 40,
           height: 40,
           alt: "*",
@@ -1307,6 +1307,122 @@ Blockly.Blocks.kuki_turn_right = {
         {
           "type": "field_image",
           "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/MoveRight.svg",
+          "width": 40,
+          "height": 40,
+          "alt": "value"
+        },
+        {
+          "type": "input_value",
+          "name": "ANGLE",
+          "check": "Number"
+        }
+      ],
+      "inputsInline": true,
+      "previousStatement": null,
+      "nextStatement": null,
+      "category": Blockly.Categories.looks,
+      "colour": "#5565ee",
+      "colourSecondary":  "#3373CC",
+      "colourTertiary":  "#3142d8"
+    });
+  }
+};
+Blockly.Blocks.kuki_left_wheel_turn_left = {
+  init: function() {
+    this.jsonInit({
+      "id": "kuki_left_wheel_turn_left",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_image",
+          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/kuki_drive_left_wheel_left.svg",
+          "width": 40,
+          "height": 40,
+          "alt": "value"
+        },
+        {
+          "type": "input_value",
+          "name": "ANGLE",
+          "check": "Number"
+        }
+      ],
+      "inputsInline": true,
+      "previousStatement": null,
+      "nextStatement": null,
+      "category": Blockly.Categories.looks,
+      "colour": "#5565ee",
+      "colourSecondary":  "#3373CC",
+      "colourTertiary":  "#3142d8"
+    });
+  }
+};
+Blockly.Blocks.kuki_left_wheel_turn_right = {
+  init: function() {
+    this.jsonInit({
+      "id": "kuki_left_wheel_turn_right",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_image",
+          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/kuki_drive_left_wheel_right.svg",
+          "width": 40,
+          "height": 40,
+          "alt": "value"
+        },
+        {
+          "type": "input_value",
+          "name": "ANGLE",
+          "check": "Number"
+        }
+      ],
+      "inputsInline": true,
+      "previousStatement": null,
+      "nextStatement": null,
+      "category": Blockly.Categories.looks,
+      "colour": "#5565ee",
+      "colourSecondary":  "#3373CC",
+      "colourTertiary":  "#3142d8"
+    });
+  }
+};
+Blockly.Blocks.kuki_right_wheel_turn_left = {
+  init: function() {
+    this.jsonInit({
+      "id": "kuki_right_wheel_turn_left",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_image",
+          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/kuki_drive_right_wheel_left.svg",
+          "width": 40,
+          "height": 40,
+          "alt": "value"
+        },
+        {
+          "type": "input_value",
+          "name": "ANGLE",
+          "check": "Number"
+        }
+      ],
+      "inputsInline": true,
+      "previousStatement": null,
+      "nextStatement": null,
+      "category": Blockly.Categories.looks,
+      "colour": "#5565ee",
+      "colourSecondary":  "#3373CC",
+      "colourTertiary":  "#3142d8"
+    });
+  }
+};
+Blockly.Blocks.kuki_right_wheel_turn_right = {
+  init: function() {
+    this.jsonInit({
+      "id": "kuki_right_wheel_turn_right",
+      "message0": "%1 %2",
+      "args0": [
+        {
+          "type": "field_image",
+          "src": Blockly.mainWorkspace.options.pathToMedia + "kuki/kuki_drive_right_wheel_right.svg",
           "width": 40,
           "height": 40,
           "alt": "value"
